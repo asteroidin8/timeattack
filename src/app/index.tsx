@@ -53,7 +53,9 @@ export default function PlanningScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper px-5">
+    <SafeAreaView className="flex-1 bg-paper">
+      {/* SafeAreaView는 inset을 인라인 padding으로 덮어쓰므로 레이아웃 패딩은 내부 View에 */}
+      <View className="flex-1 px-6">
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[13px] text-ink-mute">{today}</Text>
@@ -126,6 +128,7 @@ export default function PlanningScreen() {
           onPress={start}>
           <Text className="text-[15px] font-medium text-white">타임어택 시작 ›››</Text>
         </Pressable>
+      </View>
       </View>
     </SafeAreaView>
   );
