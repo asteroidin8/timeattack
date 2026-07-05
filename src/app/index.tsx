@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { AppState, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { streakDays } from '@/domain/progress';
@@ -27,6 +27,7 @@ export default function PlanningScreen() {
   const addTask = useRunStore((s) => s.addTask);
   const removeTask = useRunStore((s) => s.removeTask);
   const startRun = useRunStore((s) => s.startRun);
+  const rolloverIfNeeded = useRunStore((s) => s.rolloverIfNeeded);
   const currentIndex = useRunStore((s) => s.currentIndex);
   const hydrated = useRunStore((s) => s.hydrated);
   const records = useProgressStore((s) => s.records);
@@ -36,6 +37,16 @@ export default function PlanningScreen() {
   useEffect(() => {
     if (hydrated && currentIndex !== null) router.replace('/session');
   }, [hydrated, currentIndex]);
+
+  // 날짜가 바뀌면 어제의 완료/포기 태스크를 정리하고 새 스테이지로
+  useEffect(() => {
+    if (!hydrated) return;
+    rolloverIfNeeded();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') rolloverIfNeeded();
+    });
+    return () => sub.remove();
+  }, [hydrated, rolloverIfNeeded]);
 
   const day = streakDays(records, new Date());
   const level = levelForXp(totalXp);
