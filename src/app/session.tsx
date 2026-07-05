@@ -61,7 +61,9 @@ export default function SessionScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center bg-paper px-6">
+    <SafeAreaView className="flex-1 bg-paper">
+      {/* SafeAreaView는 inset을 인라인 padding으로 덮어쓰므로 레이아웃 패딩은 내부 View에 */}
+      <View className="flex-1 items-center px-6">
       <View className="mt-6 border border-racing px-3 py-1" style={{ transform: [{ skewX: '-10deg' }] }}>
         <Text
           className="font-digitbold text-sm text-racing"
@@ -107,6 +109,7 @@ export default function SessionScreen() {
         <Pressable onPress={giveUp} hitSlop={8}>
           <Text className="text-[13px] text-ink-mute">포기하기</Text>
         </Pressable>
+      </View>
       </View>
     </SafeAreaView>
   );

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { isBirdie, runXp } from '@/domain/xp';
+import { runSavedSeconds, runXp } from '@/domain/xp';
 import { useRunStore } from '@/stores/useRunStore';
 import { formatClock } from '@/utils/time';
 
@@ -29,7 +29,7 @@ export default function ResultScreen() {
   const attempted = tasks.filter((t) => t.status !== 'pending');
   const totalFocusSeconds = cleared.reduce((sum, t) => sum + (t.actualSeconds ?? 0), 0);
   const xp = runXp(tasks);
-  const birdies = cleared.filter((t) => isBirdie(t.betSeconds, t.actualSeconds ?? 0)).length;
+  const savedSeconds = runSavedSeconds(tasks);
 
   const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 
@@ -39,10 +39,12 @@ export default function ResultScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper px-5">
+    <SafeAreaView className="flex-1 bg-paper">
+      {/* SafeAreaView는 inset을 인라인 padding으로 덮어쓰므로 레이아웃 패딩은 내부 View에 */}
+      <View className="flex-1 px-6">
       <View className="mt-4 flex-row items-end justify-between">
         <View>
-          <Text className="text-[13px] text-ink-mute">{today} 정산</Text>
+          <Text className="text-[13px] text-ink-mute">{today} 결과</Text>
           <Text className="mt-1 text-2xl font-medium text-ink">오늘의 기록</Text>
         </View>
         <CheckerFlag />
@@ -68,8 +70,8 @@ export default function ResultScreen() {
           <Text className="mt-1 text-xs text-ink-mute">XP</Text>
         </View>
         <View className="flex-1 items-center border-r-[0.5px] border-hairline">
-          <Text className="font-digitbold text-2xl text-ink">{birdies}</Text>
-          <Text className="mt-1 text-xs text-ink-mute">버디</Text>
+          <Text className="font-digitbold text-2xl text-ink">{formatClock(savedSeconds)}</Text>
+          <Text className="mt-1 text-xs text-ink-mute">타임 세이브</Text>
         </View>
         <View className="flex-1 items-center">
           <Text className="font-digitbold text-2xl text-ink">×{maxCombo}</Text>
@@ -86,6 +88,7 @@ export default function ResultScreen() {
         <Pressable className="items-center py-2" onPress={backToPlanning} hitSlop={8}>
           <Text className="text-[13px] text-ink-mute">새 플래닝 시작</Text>
         </Pressable>
+      </View>
       </View>
     </SafeAreaView>
   );
