@@ -1,10 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useRunStore } from '@/stores/useRunStore';
+import { confirmDestructive } from '@/utils/dialog';
 import { formatClock, formatSigned } from '@/utils/time';
 
 const SEGMENTS = 10;
@@ -48,17 +49,15 @@ export default function SessionScreen() {
   };
 
   const giveUp = () => {
-    Alert.alert('포기할까요?', '콤보가 끊기고 이 태스크는 기록 없음(DNF) 처리돼요.', [
-      { text: '계속하기', style: 'cancel' },
-      {
-        text: '포기',
-        style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          giveUpCurrent();
-        },
+    confirmDestructive({
+      title: '포기할까요?',
+      message: '콤보가 끊기고 이 태스크는 기록 없음(DNF) 처리돼요.',
+      confirmLabel: '포기',
+      onConfirm: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        giveUpCurrent();
       },
-    ]);
+    });
   };
 
   return (

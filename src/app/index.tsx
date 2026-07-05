@@ -1,13 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { streakDays } from '@/domain/progress';
 import { Importance, levelForXp } from '@/domain/xp';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useRunStore } from '@/stores/useRunStore';
+import { notify } from '@/utils/dialog';
 import { formatClock } from '@/utils/time';
 
 const BET_PRESETS = [15, 25, 50];
@@ -59,7 +60,7 @@ export default function PlanningScreen() {
 
   const start = () => {
     if (!startRun()) {
-      Alert.alert('할 일이 없어요', '먼저 오늘의 태스크를 추가해 주세요.');
+      notify('할 일이 없어요', '먼저 오늘의 태스크를 추가해 주세요.');
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

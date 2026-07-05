@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { runSavedSeconds, runXp } from '@/domain/xp';
 import { useRunStore } from '@/stores/useRunStore';
+import { notify } from '@/utils/dialog';
 import { formatClock } from '@/utils/time';
 
 function CheckerFlag() {
@@ -82,7 +83,7 @@ export default function ResultScreen() {
       <View className="mt-auto gap-3 pb-4">
         <Pressable
           className="items-center rounded-2xl border border-ink py-4 active:bg-track"
-          onPress={() => Alert.alert('공유 카드', '2단계에서 만들 예정이에요.')}>
+          onPress={() => notify('공유 카드', '2단계에서 만들 예정이에요.')}>
           <Text className="text-[15px] font-medium text-ink">스토리로 공유</Text>
         </Pressable>
         <Pressable className="items-center py-2" onPress={backToPlanning} hitSlop={8}>
