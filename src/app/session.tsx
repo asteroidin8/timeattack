@@ -1,14 +1,22 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  cancelSessionNotification,
+  ensureNotificationSetup,
+  scheduleSessionEndNotification,
+} from '@/services/notifications';
 import { useRunStore } from '@/stores/useRunStore';
+import { confirmDestructive, notify } from '@/utils/dialog';
 import { formatClock, formatSigned } from '@/utils/time';
 
 const SEGMENTS = 10;
 const DANGER_RATIO = 0.2;
+
+const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 현재 태스크가 DNF 처리됐어요.';
 
 export default function SessionScreen() {
   const hydrated = useRunStore((s) => s.hydrated);
@@ -20,6 +28,7 @@ export default function SessionScreen() {
   const giveUpCurrent = useRunStore((s) => s.giveUpCurrent);
 
   const [now, setNow] = useState(() => Date.now());
+  const notificationId = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);
@@ -29,6 +38,42 @@ export default function SessionScreen() {
   useEffect(() => {
     if (hydrated && currentIndex === null) router.replace('/result');
   }, [hydrated, currentIndex]);
+
+  // 이탈 감지: 백그라운드 전환 시각을 기록하고, 복귀(또는 재실행) 시 유예 초과면 DNF
+  useEffect(() => {
+    if (!hydrated) return;
+    const store = useRunStore.getState();
+    if (store.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
+    const sub = AppState.addEventListener('change', (next) => {
+      const current = useRunStore.getState();
+      if (next === 'active') {
+        if (current.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
+      } else if (next === 'background' || next === 'inactive') {
+        current.markAway();
+      }
+    });
+    return () => sub.remove();
+  }, [hydrated]);
+
+  // 태스크가 바뀔 때마다 종료 알림을 다시 예약 (네이티브 전용, 웹은 no-op)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await cancelSessionNotification(notificationId.current);
+      notificationId.current = null;
+      if (currentIndex === null || endAt === null) return;
+      const task = useRunStore.getState().tasks[currentIndex];
+      if (!task) return;
+      const granted = await ensureNotificationSetup();
+      if (!granted || cancelled) return;
+      notificationId.current = await scheduleSessionEndNotification(task.title, endAt);
+    })();
+    return () => {
+      cancelled = true;
+      cancelSessionNotification(notificationId.current);
+      notificationId.current = null;
+    };
+  }, [currentIndex, endAt]);
 
   if (!hydrated || currentIndex === null || endAt === null) return null;
 
@@ -48,17 +93,15 @@ export default function SessionScreen() {
   };
 
   const giveUp = () => {
-    Alert.alert('포기할까요?', '콤보가 끊기고 이 태스크는 기록 없음(DNF) 처리돼요.', [
-      { text: '계속하기', style: 'cancel' },
-      {
-        text: '포기',
-        style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          giveUpCurrent();
-        },
+    confirmDestructive({
+      title: '포기할까요?',
+      message: '콤보가 끊기고 이 태스크는 기록 없음(DNF) 처리돼요.',
+      confirmLabel: '포기',
+      onConfirm: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        giveUpCurrent();
       },
-    ]);
+    });
   };
 
   return (

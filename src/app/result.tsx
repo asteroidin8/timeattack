@@ -1,9 +1,16 @@
+import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
-import { runSavedSeconds, runXp } from '@/domain/xp';
+import { ShareCard } from '@/components/ShareCard';
+import { streakDays } from '@/domain/progress';
+import { levelForXp, runSavedSeconds, runXp } from '@/domain/xp';
+import { useProgressStore } from '@/stores/useProgressStore';
 import { useRunStore } from '@/stores/useRunStore';
+import { notify } from '@/utils/dialog';
 import { formatClock } from '@/utils/time';
 
 function CheckerFlag() {
@@ -24,18 +31,37 @@ export default function ResultScreen() {
   const tasks = useRunStore((s) => s.tasks);
   const maxCombo = useRunStore((s) => s.maxCombo);
   const resetRun = useRunStore((s) => s.resetRun);
+  const records = useProgressStore((s) => s.records);
+  const totalXp = useProgressStore((s) => s.totalXp);
+
+  const cardRef = useRef<View>(null);
 
   const cleared = tasks.filter((t) => t.status === 'clear');
   const attempted = tasks.filter((t) => t.status !== 'pending');
   const totalFocusSeconds = cleared.reduce((sum, t) => sum + (t.actualSeconds ?? 0), 0);
   const xp = runXp(tasks);
   const savedSeconds = runSavedSeconds(tasks);
+  const level = levelForXp(totalXp);
+  const day = streakDays(records, new Date());
 
   const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 
   const backToPlanning = () => {
     resetRun();
     router.replace('/');
+  };
+
+  const share = async () => {
+    if (Platform.OS === 'web') {
+      notify('공유 카드', '공유는 모바일 앱에서 사용할 수 있어요.');
+      return;
+    }
+    try {
+      const uri = await captureRef(cardRef, { format: 'png', quality: 1 });
+      await Sharing.shareAsync(uri, { mimeType: 'image/png' });
+    } catch {
+      notify('공유 실패', '잠시 후 다시 시도해 주세요.');
+    }
   };
 
   return (
@@ -45,7 +71,7 @@ export default function ResultScreen() {
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[13px] text-ink-mute">{today} 결과</Text>
-          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 기록</Text>
+          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 레이스</Text>
         </View>
         <CheckerFlag />
       </View>
@@ -82,7 +108,7 @@ export default function ResultScreen() {
       <View className="mt-auto gap-3 pb-4">
         <Pressable
           className="items-center rounded-2xl border border-ink py-4 active:bg-track"
-          onPress={() => Alert.alert('공유 카드', '2단계에서 만들 예정이에요.')}>
+          onPress={share}>
           <Text className="text-[15px] font-medium text-ink">스토리로 공유</Text>
         </Pressable>
         <Pressable className="items-center py-2" onPress={backToPlanning} hitSlop={8}>
@@ -90,6 +116,26 @@ export default function ResultScreen() {
         </Pressable>
       </View>
       </View>
+
+      {/* 공유 카드: 화면 밖에서 렌더해두고 공유 시 캡처 */}
+      {Platform.OS !== 'web' && (
+        <View style={{ position: 'absolute', left: -1000, top: 0 }} pointerEvents="none">
+          <ShareCard
+            ref={cardRef}
+            data={{
+              dateLabel: today,
+              focusSeconds: totalFocusSeconds,
+              cleared: cleared.length,
+              attempted: attempted.length,
+              xp,
+              savedSeconds,
+              maxCombo,
+              level,
+              day,
+            }}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
