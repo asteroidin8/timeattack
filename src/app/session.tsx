@@ -11,6 +11,7 @@ const SEGMENTS = 10;
 const DANGER_RATIO = 0.2;
 
 export default function SessionScreen() {
+  const hydrated = useRunStore((s) => s.hydrated);
   const tasks = useRunStore((s) => s.tasks);
   const currentIndex = useRunStore((s) => s.currentIndex);
   const endAt = useRunStore((s) => s.endAt);
@@ -26,10 +27,10 @@ export default function SessionScreen() {
   }, []);
 
   useEffect(() => {
-    if (currentIndex === null) router.replace('/result');
-  }, [currentIndex]);
+    if (hydrated && currentIndex === null) router.replace('/result');
+  }, [hydrated, currentIndex]);
 
-  if (currentIndex === null || endAt === null) return null;
+  if (!hydrated || currentIndex === null || endAt === null) return null;
 
   const task = tasks[currentIndex];
   const doneCount = tasks.filter((t) => t.status !== 'pending').length;
