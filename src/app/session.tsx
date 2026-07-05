@@ -1,15 +1,17 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { AppState, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useRunStore } from '@/stores/useRunStore';
-import { confirmDestructive } from '@/utils/dialog';
+import { confirmDestructive, notify } from '@/utils/dialog';
 import { formatClock, formatSigned } from '@/utils/time';
 
 const SEGMENTS = 10;
 const DANGER_RATIO = 0.2;
+
+const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 현재 태스크가 DNF 처리됐어요.';
 
 export default function SessionScreen() {
   const hydrated = useRunStore((s) => s.hydrated);
@@ -30,6 +32,22 @@ export default function SessionScreen() {
   useEffect(() => {
     if (hydrated && currentIndex === null) router.replace('/result');
   }, [hydrated, currentIndex]);
+
+  // 이탈 감지: 백그라운드 전환 시각을 기록하고, 복귀(또는 재실행) 시 유예 초과면 DNF
+  useEffect(() => {
+    if (!hydrated) return;
+    const store = useRunStore.getState();
+    if (store.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
+    const sub = AppState.addEventListener('change', (next) => {
+      const current = useRunStore.getState();
+      if (next === 'active') {
+        if (current.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
+      } else if (next === 'background' || next === 'inactive') {
+        current.markAway();
+      }
+    });
+    return () => sub.remove();
+  }, [hydrated]);
 
   if (!hydrated || currentIndex === null || endAt === null) return null;
 

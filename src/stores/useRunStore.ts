@@ -2,16 +2,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { dateKey } from '@/domain/progress';
 import { Importance, RunTask } from '@/domain/xp';
 import { useProgressStore } from '@/stores/useProgressStore';
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+// 세션 중 앱 이탈 허용 시간 — 넘기면 현재 태스크 DNF
+export const AWAY_GRACE_MS = 30_000;
 
 const seedTasks: RunTask[] = [
   { id: uid(), title: '보고서 초안 쓰기', importance: 3, betSeconds: 50 * 60, status: 'pending' },
   { id: uid(), title: '영어 단어 60개', importance: 2, betSeconds: 25 * 60, status: 'pending' },
   { id: uid(), title: '메일 정리', importance: 1, betSeconds: 15 * 60, status: 'pending' },
 ];
+
+interface TaskFields {
+  title?: string;
+  importance?: Importance;
+  betMinutes?: number;
+}
 
 interface RunState {
   // AsyncStorage 복원 완료 전에는 화면 라우팅 판단을 하면 안 된다 (기본값을 진짜 상태로 오인)
@@ -22,13 +32,20 @@ interface RunState {
   endAt: number | null;
   combo: number;
   maxCombo: number;
+  awayAt: number | null;
+  lastPlanDate: string | null;
   setHydrated: () => void;
   addTask: (title: string, importance: Importance, betMinutes: number) => void;
+  updateTask: (id: string, fields: TaskFields) => void;
   removeTask: (id: string) => void;
+  moveTask: (id: string, direction: -1 | 1) => void;
   startRun: () => boolean;
   completeCurrent: () => void;
   giveUpCurrent: () => void;
   resetRun: () => void;
+  markAway: () => void;
+  resolveAway: () => 'ok' | 'failed';
+  rolloverIfNeeded: () => void;
 }
 
 function advance(tasks: RunTask[]) {
@@ -54,6 +71,8 @@ export const useRunStore = create<RunState>()(
       endAt: null,
       combo: 0,
       maxCombo: 0,
+      awayAt: null,
+      lastPlanDate: null,
 
       setHydrated: () => set({ hydrated: true }),
 
@@ -74,14 +93,46 @@ export const useRunStore = create<RunState>()(
         }));
       },
 
+      updateTask: (id, fields) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) => {
+            if (task.id !== id) return task;
+            const trimmed = fields.title?.trim();
+            return {
+              ...task,
+              title: trimmed ? trimmed : task.title,
+              importance: fields.importance ?? task.importance,
+              betSeconds: fields.betMinutes
+                ? Math.max(10, fields.betMinutes) * 60
+                : task.betSeconds,
+            };
+          }),
+        }));
+      },
+
       removeTask: (id) => {
         set((state) => ({ tasks: state.tasks.filter((task) => task.id !== id) }));
+      },
+
+      moveTask: (id, direction) => {
+        set((state) => {
+          const tasks = [...state.tasks];
+          const from = tasks.findIndex((task) => task.id === id);
+          if (from === -1) return state;
+          let to = from + direction;
+          while (to >= 0 && to < tasks.length && tasks[to].status !== 'pending') {
+            to += direction;
+          }
+          if (to < 0 || to >= tasks.length) return state;
+          [tasks[from], tasks[to]] = [tasks[to], tasks[from]];
+          return { tasks };
+        });
       },
 
       startRun: () => {
         const placement = advance(get().tasks);
         if (placement.currentIndex === null) return false;
-        set({ ...placement, combo: 0, maxCombo: 0 });
+        set({ ...placement, combo: 0, maxCombo: 0, awayAt: null });
         return true;
       },
 
@@ -128,7 +179,37 @@ export const useRunStore = create<RunState>()(
           endAt: null,
           combo: 0,
           maxCombo: 0,
+          awayAt: null,
         }));
+      },
+
+      markAway: () => {
+        const { currentIndex, awayAt } = get();
+        if (currentIndex !== null && awayAt === null) {
+          set({ awayAt: Date.now() });
+        }
+      },
+
+      resolveAway: () => {
+        const { awayAt, currentIndex } = get();
+        if (awayAt === null) return 'ok';
+        set({ awayAt: null });
+        if (currentIndex === null) return 'ok';
+        if (Date.now() - awayAt <= AWAY_GRACE_MS) return 'ok';
+        get().giveUpCurrent();
+        return 'failed';
+      },
+
+      // 자정이 지나면 어제의 완료/포기 태스크를 목록에서 정리 (기록은 progress에 남아 있음)
+      rolloverIfNeeded: () => {
+        const { lastPlanDate, currentIndex, tasks } = get();
+        if (currentIndex !== null) return;
+        const today = dateKey(new Date());
+        if (lastPlanDate === today) return;
+        set({
+          tasks: tasks.filter((task) => task.status === 'pending'),
+          lastPlanDate: today,
+        });
       },
     }),
     {
@@ -141,6 +222,8 @@ export const useRunStore = create<RunState>()(
         endAt: state.endAt,
         combo: state.combo,
         maxCombo: state.maxCombo,
+        awayAt: state.awayAt,
+        lastPlanDate: state.lastPlanDate,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated();
