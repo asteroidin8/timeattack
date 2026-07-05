@@ -1,10 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Importance } from '@/domain/xp';
+import { streakDays } from '@/domain/progress';
+import { Importance, levelForXp } from '@/domain/xp';
+import { useProgressStore } from '@/stores/useProgressStore';
 import { useRunStore } from '@/stores/useRunStore';
 import { formatClock } from '@/utils/time';
 
@@ -24,6 +26,18 @@ export default function PlanningScreen() {
   const addTask = useRunStore((s) => s.addTask);
   const removeTask = useRunStore((s) => s.removeTask);
   const startRun = useRunStore((s) => s.startRun);
+  const currentIndex = useRunStore((s) => s.currentIndex);
+  const hydrated = useRunStore((s) => s.hydrated);
+  const records = useProgressStore((s) => s.records);
+  const totalXp = useProgressStore((s) => s.totalXp);
+
+  // 앱 재시작 시 진행 중이던 런이 있으면 세션으로 복귀 (타이머는 endAt 기준이라 그대로 이어짐)
+  useEffect(() => {
+    if (hydrated && currentIndex !== null) router.replace('/session');
+  }, [hydrated, currentIndex]);
+
+  const day = streakDays(records, new Date());
+  const level = levelForXp(totalXp);
 
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState<Importance>(2);
@@ -61,7 +75,9 @@ export default function PlanningScreen() {
           <Text className="text-[13px] text-ink-mute">{today}</Text>
           <Text className="mt-1 text-2xl font-medium text-ink">오늘의 스테이지</Text>
         </View>
-        <Text className="font-digitbold text-base text-racing">DAY 1</Text>
+        <Text className="font-digitbold text-base text-racing">
+          LV {level} · DAY {day}
+        </Text>
       </View>
 
       <FlatList
