@@ -1,9 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  cancelSessionNotification,
+  ensureNotificationSetup,
+  scheduleSessionEndNotification,
+} from '@/services/notifications';
 import { useRunStore } from '@/stores/useRunStore';
 import { confirmDestructive, notify } from '@/utils/dialog';
 import { formatClock, formatSigned } from '@/utils/time';
@@ -23,6 +28,7 @@ export default function SessionScreen() {
   const giveUpCurrent = useRunStore((s) => s.giveUpCurrent);
 
   const [now, setNow] = useState(() => Date.now());
+  const notificationId = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);
@@ -48,6 +54,26 @@ export default function SessionScreen() {
     });
     return () => sub.remove();
   }, [hydrated]);
+
+  // 태스크가 바뀔 때마다 종료 알림을 다시 예약 (네이티브 전용, 웹은 no-op)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await cancelSessionNotification(notificationId.current);
+      notificationId.current = null;
+      if (currentIndex === null || endAt === null) return;
+      const task = useRunStore.getState().tasks[currentIndex];
+      if (!task) return;
+      const granted = await ensureNotificationSetup();
+      if (!granted || cancelled) return;
+      notificationId.current = await scheduleSessionEndNotification(task.title, endAt);
+    })();
+    return () => {
+      cancelled = true;
+      cancelSessionNotification(notificationId.current);
+      notificationId.current = null;
+    };
+  }, [currentIndex, endAt]);
 
   if (!hydrated || currentIndex === null || endAt === null) return null;
 
