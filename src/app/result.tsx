@@ -45,7 +45,7 @@ export default function ResultScreen() {
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[13px] text-ink-mute">{today} 결과</Text>
-          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 기록</Text>
+          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 레이스</Text>
         </View>
         <CheckerFlag />
       </View>
