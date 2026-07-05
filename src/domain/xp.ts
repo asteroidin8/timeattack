@@ -30,7 +30,6 @@ export const DAILY_XP_CAP = 1200;
 
 export const EARLY_THRESHOLD = 0.9;
 export const ACCURATE_UPPER = 1.1;
-export const EAGLE_THRESHOLD = 0.6;
 
 export function gradeClear(betSeconds: number, actualSeconds: number): ClearGrade {
   if (actualSeconds < betSeconds * EARLY_THRESHOLD) return 'early';
@@ -38,12 +37,14 @@ export function gradeClear(betSeconds: number, actualSeconds: number): ClearGrad
   return 'overtime';
 }
 
-export function isBirdie(betSeconds: number, actualSeconds: number): boolean {
-  return actualSeconds < betSeconds * EARLY_THRESHOLD;
+// 타임 세이브: 베팅보다 빨리 클리어해서 아낀 시간. 초과분은 0으로 취급(감점은 XP 배수가 담당).
+export function taskSavedSeconds(task: RunTask): number {
+  if (task.status !== 'clear' || task.actualSeconds == null) return 0;
+  return Math.max(0, task.betSeconds - task.actualSeconds);
 }
 
-export function isEagle(betSeconds: number, actualSeconds: number): boolean {
-  return actualSeconds < betSeconds * EAGLE_THRESHOLD;
+export function runSavedSeconds(tasks: RunTask[]): number {
+  return tasks.reduce((sum, task) => sum + taskSavedSeconds(task), 0);
 }
 
 export function taskXp(task: RunTask): number {

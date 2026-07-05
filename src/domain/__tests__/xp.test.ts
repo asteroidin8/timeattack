@@ -3,11 +3,11 @@ import { describe, expect, it } from '@jest/globals';
 import {
   DAILY_XP_CAP,
   gradeClear,
-  isBirdie,
-  isEagle,
   levelForXp,
+  runSavedSeconds,
   runXp,
   RunTask,
+  taskSavedSeconds,
   taskXp,
 } from '../xp';
 
@@ -86,12 +86,23 @@ describe('runXp', () => {
   });
 });
 
-describe('badges', () => {
-  it('베팅의 90% 미만이면 버디, 60% 미만이면 이글', () => {
-    expect(isBirdie(1000, 899)).toBe(true);
-    expect(isBirdie(1000, 950)).toBe(false);
-    expect(isEagle(1000, 599)).toBe(true);
-    expect(isEagle(1000, 700)).toBe(false);
+describe('타임 세이브', () => {
+  it('베팅보다 빨리 클리어하면 아낀 시간, 초과하면 0', () => {
+    expect(taskSavedSeconds(clearedTask({ betSeconds: 1000, actualSeconds: 700 }))).toBe(300);
+    expect(taskSavedSeconds(clearedTask({ betSeconds: 1000, actualSeconds: 1200 }))).toBe(0);
+  });
+
+  it('포기한 태스크는 0', () => {
+    expect(taskSavedSeconds(clearedTask({ status: 'giveup', actualSeconds: 100 }))).toBe(0);
+  });
+
+  it('런 전체 합산', () => {
+    const tasks = [
+      clearedTask({ betSeconds: 1000, actualSeconds: 700 }),
+      clearedTask({ betSeconds: 600, actualSeconds: 500 }),
+      clearedTask({ betSeconds: 600, actualSeconds: 900 }),
+    ];
+    expect(runSavedSeconds(tasks)).toBe(400);
   });
 });
 
