@@ -4,8 +4,11 @@ import {
   buildRunRecord,
   DailyRecord,
   dateKey,
+  focusLevel,
   mergeDailyRecord,
   streakDays,
+  totalSavedSeconds,
+  weeklyFocusSeconds,
 } from '../progress';
 import { DAILY_XP_CAP, RunTask } from '../xp';
 
@@ -104,5 +107,31 @@ describe('streakDays', () => {
   it('월 경계를 넘어도 이어진다', () => {
     const records = { '2026-06-30': true, '2026-07-01': true, '2026-07-02': true, '2026-07-03': true, '2026-07-04': true };
     expect(streakDays(records, today)).toBe(6);
+  });
+});
+
+describe('통계 집계', () => {
+  const today = new Date(2026, 6, 5);
+  const recs: Record<string, DailyRecord> = {
+    '2026-07-05': record({ date: '2026-07-05', focusSeconds: 600, savedSeconds: 120 }),
+    '2026-07-03': record({ date: '2026-07-03', focusSeconds: 1800, savedSeconds: 300 }),
+    '2026-06-27': record({ date: '2026-06-27', focusSeconds: 900, savedSeconds: 90 }),
+  };
+
+  it('weeklyFocusSeconds는 최근 7일만 합산한다', () => {
+    // 07-05, 07-03만 최근 7일(06-29~07-05), 06-27은 제외
+    expect(weeklyFocusSeconds(recs, today)).toBe(2400);
+  });
+
+  it('totalSavedSeconds는 전체를 합산한다', () => {
+    expect(totalSavedSeconds(recs)).toBe(510);
+  });
+
+  it('focusLevel은 집중 시간을 0~4로 버킷팅한다', () => {
+    expect(focusLevel(0)).toBe(0);
+    expect(focusLevel(20 * 60)).toBe(1);
+    expect(focusLevel(45 * 60)).toBe(2);
+    expect(focusLevel(90 * 60)).toBe(3);
+    expect(focusLevel(180 * 60)).toBe(4);
   });
 });
