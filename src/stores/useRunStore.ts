@@ -8,7 +8,7 @@ import { useProgressStore } from '@/stores/useProgressStore';
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-// 세션 중 앱 이탈 허용 시간 — 넘기면 현재 태스크 DNF
+// 세션 중 앱 이탈 허용 시간 — 넘기면 현재 태스크 미완주 처리
 export const AWAY_GRACE_MS = 30_000;
 
 const seedTasks: RunTask[] = [

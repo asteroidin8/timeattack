@@ -16,7 +16,7 @@ import { formatClock, formatSigned } from '@/utils/time';
 const SEGMENTS = 10;
 const DANGER_RATIO = 0.2;
 
-const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 현재 태스크가 DNF 처리됐어요.';
+const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 이 태스크는 미완주로 남았어요.';
 
 export default function SessionScreen() {
   const hydrated = useRunStore((s) => s.hydrated);
@@ -39,7 +39,7 @@ export default function SessionScreen() {
     if (hydrated && currentIndex === null) router.replace('/result');
   }, [hydrated, currentIndex]);
 
-  // 이탈 감지: 백그라운드 전환 시각을 기록하고, 복귀(또는 재실행) 시 유예 초과면 DNF
+  // 이탈 감지: 백그라운드 전환 시각을 기록하고, 복귀(또는 재실행) 시 유예 초과면 미완주 처리
   useEffect(() => {
     if (!hydrated) return;
     const store = useRunStore.getState();
@@ -95,7 +95,7 @@ export default function SessionScreen() {
   const giveUp = () => {
     confirmDestructive({
       title: '포기할까요?',
-      message: '콤보가 끊기고 이 태스크는 기록 없음(DNF) 처리돼요.',
+      message: '콤보가 끊기고 이 태스크는 미완주로 남아요.',
       confirmLabel: '포기',
       onConfirm: () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
