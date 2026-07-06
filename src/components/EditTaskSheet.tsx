@@ -48,10 +48,13 @@ export function EditTaskSheet({
 
   return (
     <Modal visible={task !== null} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable
-        onPress={onClose}
-        style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(28,28,26,0.4)' }}>
-        <Pressable onPress={() => {}} className="rounded-t-3xl bg-paper px-6 pb-8 pt-6">
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        {/* 배경: 시트 콘텐츠의 형제로 두어야 콘텐츠 탭이 오버레이로 전파돼 닫히지 않음 (RN-web) */}
+        <Pressable
+          onPress={onClose}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(28,28,26,0.4)' }}
+        />
+        <View className="rounded-t-3xl bg-paper px-6 pb-8 pt-6">
           <View className="mb-5 flex-row items-center justify-between">
             <Text className="text-lg font-medium text-ink">태스크 수정</Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -121,8 +124,8 @@ export function EditTaskSheet({
             hitSlop={8}>
             <Text className="text-[13px] text-racing">삭제</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
