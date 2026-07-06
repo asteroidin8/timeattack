@@ -52,7 +52,7 @@ export const ShareCard = forwardRef<View, { data: ShareCardData }>(function Shar
       className="bg-paper px-8 py-12"
       style={{ width: 360, height: 640 }}>
       <View className="flex-row items-center justify-between">
-        <Text className="font-digitbold text-base tracking-[2px] text-racing">TIMEATTACK</Text>
+        <Text className="font-digitbold text-base tracking-[2px] text-racing">TODORUN</Text>
         <Checker />
       </View>
 
