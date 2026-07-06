@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   AppState,
-  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,6 +10,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EditTaskSheet } from '@/components/EditTaskSheet';
@@ -38,7 +41,7 @@ export default function PlanningScreen() {
   const addTask = useRunStore((s) => s.addTask);
   const updateTask = useRunStore((s) => s.updateTask);
   const removeTask = useRunStore((s) => s.removeTask);
-  const moveTask = useRunStore((s) => s.moveTask);
+  const reorderTasks = useRunStore((s) => s.reorderTasks);
   const startRun = useRunStore((s) => s.startRun);
   const rolloverIfNeeded = useRunStore((s) => s.rolloverIfNeeded);
   const currentIndex = useRunStore((s) => s.currentIndex);
@@ -50,7 +53,6 @@ export default function PlanningScreen() {
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState<Importance>(2);
   const [betIndex, setBetIndex] = useState(1);
-  const [reorderMode, setReorderMode] = useState(false);
   const [editingTask, setEditingTask] = useState<RunTask | null>(null);
 
   // 첫 실행이면 온보딩으로, 진행 중이던 런이 있으면 세션으로 복귀 (endAt 기준이라 타이머 이어짐)
@@ -117,59 +119,43 @@ export default function PlanningScreen() {
         </Pressable>
       </View>
 
-      <View className="mt-4 flex-row justify-end">
-        <Pressable onPress={() => setReorderMode((prev) => !prev)} hitSlop={8}>
-          <Text className={`text-[13px] ${reorderMode ? 'text-racing' : 'text-ink-mute'}`}>
-            {reorderMode ? '순서 완료' : '순서 변경'}
-          </Text>
-        </Pressable>
+      <View className="mt-4 flex-1">
+        <View className="h-[0.5px] bg-hairline" />
+        <DraggableFlatList
+          data={pending}
+          keyExtractor={(item) => item.id}
+          onDragEnd={({ data }) => reorderTasks(data.map((t) => t.id))}
+          containerStyle={{ flex: 1 }}
+          ItemSeparatorComponent={() => <View className="h-[0.5px] bg-hairline" />}
+          renderItem={({ item, drag, isActive }: RenderItemParams<RunTask>) => (
+            <ScaleDecorator>
+              <Pressable
+                className={`flex-row items-center justify-between py-3 ${
+                  isActive ? 'bg-track' : ''
+                }`}
+                onPress={() => setEditingTask(item)}
+                onLongPress={drag}
+                delayLongPress={180}>
+                <View className="flex-1 pr-2">
+                  <Text className="text-[15px] text-ink">{item.title}</Text>
+                  <View className="mt-1">
+                    <Chevrons level={item.importance} />
+                  </View>
+                </View>
+                <Text className="font-digit text-xl text-ink">
+                  {formatClock(item.betSeconds)}
+                </Text>
+              </Pressable>
+            </ScaleDecorator>
+          )}
+          ListEmptyComponent={
+            <Text className="py-10 text-center text-[13px] text-ink-mute">
+              아래에서 첫 태스크를 추가해 보세요
+            </Text>
+          }
+          ListFooterComponent={<View className="h-[0.5px] bg-hairline" />}
+        />
       </View>
-
-      <FlatList
-        className="mt-1"
-        data={pending}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View className="h-[0.5px] bg-hairline" />}
-        renderItem={({ item }) => (
-          <Pressable
-            className="flex-row items-center justify-between py-3"
-            onPress={() => setEditingTask(item)}>
-            <View className="flex-1 pr-2">
-              <Text className="text-[15px] text-ink">{item.title}</Text>
-              <View className="mt-1">
-                <Chevrons level={item.importance} />
-              </View>
-            </View>
-            {reorderMode ? (
-              <View className="flex-row items-center gap-1">
-                <Pressable
-                  className="h-9 w-9 items-center justify-center rounded-lg bg-track"
-                  hitSlop={4}
-                  onPress={() => moveTask(item.id, -1)}>
-                  <Text className="text-[13px] text-ink">↑</Text>
-                </Pressable>
-                <Pressable
-                  className="h-9 w-9 items-center justify-center rounded-lg bg-track"
-                  hitSlop={4}
-                  onPress={() => moveTask(item.id, 1)}>
-                  <Text className="text-[13px] text-ink">↓</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Text className="font-digit text-xl text-ink">
-                {formatClock(item.betSeconds)}
-              </Text>
-            )}
-          </Pressable>
-        )}
-        ListEmptyComponent={
-          <Text className="py-10 text-center text-[13px] text-ink-mute">
-            아래에서 첫 태스크를 추가해 보세요
-          </Text>
-        }
-        ListHeaderComponent={<View className="h-[0.5px] bg-hairline" />}
-        ListFooterComponent={<View className="h-[0.5px] bg-hairline" />}
-      />
 
       <View className="flex-row items-center gap-2 border-t-[0.5px] border-hairline py-3">
         <TextInput
