@@ -61,3 +61,29 @@ export function streakDays(records: Record<string, unknown>, today: Date): numbe
   }
   return streak;
 }
+
+// 최근 7일(오늘 포함)의 집중 시간 합
+export function weeklyFocusSeconds(records: Record<string, DailyRecord>, today: Date): number {
+  let sum = 0;
+  const cursor = new Date(today);
+  for (let i = 0; i < 7; i++) {
+    sum += records[dateKey(cursor)]?.focusSeconds ?? 0;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return sum;
+}
+
+// 전체 누적 타임 세이브
+export function totalSavedSeconds(records: Record<string, DailyRecord>): number {
+  return Object.values(records).reduce((sum, r) => sum + r.savedSeconds, 0);
+}
+
+// 스트릭 캘린더 셀 강도 (0~4) — 집중 시간 기준 버킷
+export function focusLevel(focusSeconds: number): 0 | 1 | 2 | 3 | 4 {
+  if (focusSeconds <= 0) return 0;
+  const minutes = focusSeconds / 60;
+  if (minutes < 30) return 1;
+  if (minutes < 60) return 2;
+  if (minutes < 120) return 3;
+  return 4;
+}
