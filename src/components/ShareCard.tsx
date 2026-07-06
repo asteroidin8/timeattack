@@ -64,14 +64,17 @@ export const ShareCard = forwardRef<View, { data: ShareCardData }>(function Shar
         </Text>
         <Text className="mt-2 text-[13px] text-ink-mute">총 집중 시간</Text>
 
-        <View className="mt-10 w-full flex-row border-y-[0.5px] border-hairline py-4">
+        <Text className="mt-8 font-digitbold text-sm tracking-[2px] text-racing">TIME SAVE</Text>
+        <Text className="mt-1 font-digitbold text-4xl text-ink">
+          +{formatClock(data.savedSeconds)}
+        </Text>
+        <Text className="mt-1 text-[13px] text-ink-mute">아낀 시간</Text>
+
+        <View className="mt-8 w-full flex-row border-y-[0.5px] border-hairline py-4">
           <Stat label="클리어" value={`${data.cleared}/${data.attempted}`} />
           <Stat label="XP" value={`+${data.xp}`} accent />
-          <Stat label="타임 세이브" value={formatClock(data.savedSeconds)} />
+          <Stat label="콤보" value={`×${data.maxCombo}`} />
         </View>
-        <Text className="mt-4 font-digitbold text-base text-ink">
-          COMBO ×{data.maxCombo}
-        </Text>
       </View>
 
       <Text className="text-center font-digitbold text-sm text-racing">
