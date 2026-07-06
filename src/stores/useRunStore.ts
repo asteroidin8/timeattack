@@ -34,7 +34,7 @@ interface RunState {
   addTask: (title: string, importance: Importance, betMinutes: number) => void;
   updateTask: (id: string, fields: TaskFields) => void;
   removeTask: (id: string) => void;
-  moveTask: (id: string, direction: -1 | 1) => void;
+  reorderTasks: (orderedPendingIds: string[]) => void;
   startRun: () => boolean;
   completeCurrent: () => void;
   giveUpCurrent: () => void;
@@ -113,18 +113,15 @@ export const useRunStore = create<RunState>()(
         set((state) => ({ tasks: state.tasks.filter((task) => task.id !== id) }));
       },
 
-      moveTask: (id, direction) => {
+      // DnD 결과 반영: pending 태스크를 새 순서로, 비-pending은 뒤에 유지
+      reorderTasks: (orderedPendingIds) => {
         set((state) => {
-          const tasks = [...state.tasks];
-          const from = tasks.findIndex((task) => task.id === id);
-          if (from === -1) return state;
-          let to = from + direction;
-          while (to >= 0 && to < tasks.length && tasks[to].status !== 'pending') {
-            to += direction;
-          }
-          if (to < 0 || to >= tasks.length) return state;
-          [tasks[from], tasks[to]] = [tasks[to], tasks[from]];
-          return { tasks };
+          const byId = new Map(state.tasks.map((t) => [t.id, t]));
+          const reordered = orderedPendingIds
+            .map((id) => byId.get(id))
+            .filter((t): t is RunTask => t != null && t.status === 'pending');
+          const rest = state.tasks.filter((t) => t.status !== 'pending');
+          return { tasks: [...reordered, ...rest] };
         });
       },
 

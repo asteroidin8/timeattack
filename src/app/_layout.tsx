@@ -10,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { cssInterop } from 'nativewind';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // SafeAreaView는 코어 컴포넌트가 아니라서 className을 수동으로 연결해야 한다
@@ -30,7 +31,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -38,6 +39,6 @@ export default function RootLayout() {
         }}
       />
       <StatusBar style="dark" />
-    </>
+    </GestureHandlerRootView>
   );
 }
