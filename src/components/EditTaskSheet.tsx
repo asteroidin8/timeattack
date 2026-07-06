@@ -4,11 +4,7 @@ import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { Importance, RunTask } from '@/domain/xp';
 
 const BET_PRESETS = [10, 15, 25, 50];
-const IMPORTANCE_OPTIONS: { level: Importance; label: string }[] = [
-  { level: 1, label: '하' },
-  { level: 2, label: '중' },
-  { level: 3, label: '상' },
-];
+const IMPORTANCE_LEVELS: Importance[] = [1, 2, 3];
 
 export interface EditResult {
   title: string;
@@ -73,17 +69,20 @@ export function EditTaskSheet({
 
           <Text className="mb-2 mt-6 text-[13px] text-ink-mute">중요도</Text>
           <View className="flex-row gap-2">
-            {IMPORTANCE_OPTIONS.map((opt) => {
-              const active = importance === opt.level;
+            {IMPORTANCE_LEVELS.map((level) => {
+              const active = importance === level;
               return (
                 <Pressable
-                  key={opt.level}
-                  onPress={() => setImportance(opt.level)}
+                  key={level}
+                  onPress={() => setImportance(level)}
                   className={`flex-1 items-center rounded-lg py-3 ${
                     active ? 'bg-racing' : 'bg-track'
                   }`}>
-                  <Text className={`text-[14px] ${active ? 'text-white' : 'text-ink-mute'}`}>
-                    {opt.label} {'›'.repeat(opt.level)}
+                  <Text
+                    className={`font-digitbold text-base tracking-[2px] ${
+                      active ? 'text-white' : 'text-ink-faint'
+                    }`}>
+                    {'›'.repeat(level)}
                   </Text>
                 </Pressable>
               );
