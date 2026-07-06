@@ -11,12 +11,6 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 // 세션 중 앱 이탈 허용 시간 — 넘기면 현재 태스크 미완주 처리
 export const AWAY_GRACE_MS = 30_000;
 
-const seedTasks: RunTask[] = [
-  { id: uid(), title: '보고서 초안 쓰기', importance: 3, betSeconds: 50 * 60, status: 'pending' },
-  { id: uid(), title: '영어 단어 60개', importance: 2, betSeconds: 25 * 60, status: 'pending' },
-  { id: uid(), title: '메일 정리', importance: 1, betSeconds: 15 * 60, status: 'pending' },
-];
-
 interface TaskFields {
   title?: string;
   importance?: Importance;
@@ -26,6 +20,7 @@ interface TaskFields {
 interface RunState {
   // AsyncStorage 복원 완료 전에는 화면 라우팅 판단을 하면 안 된다 (기본값을 진짜 상태로 오인)
   hydrated: boolean;
+  onboarded: boolean;
   tasks: RunTask[];
   currentIndex: number | null;
   startedAt: number | null;
@@ -35,6 +30,7 @@ interface RunState {
   awayAt: number | null;
   lastPlanDate: string | null;
   setHydrated: () => void;
+  completeOnboarding: () => void;
   addTask: (title: string, importance: Importance, betMinutes: number) => void;
   updateTask: (id: string, fields: TaskFields) => void;
   removeTask: (id: string) => void;
@@ -65,7 +61,8 @@ export const useRunStore = create<RunState>()(
   persist(
     (set, get) => ({
       hydrated: false,
-      tasks: seedTasks,
+      onboarded: false,
+      tasks: [],
       currentIndex: null,
       startedAt: null,
       endAt: null,
@@ -75,6 +72,8 @@ export const useRunStore = create<RunState>()(
       lastPlanDate: null,
 
       setHydrated: () => set({ hydrated: true }),
+
+      completeOnboarding: () => set({ onboarded: true }),
 
       addTask: (title, importance, betMinutes) => {
         const trimmed = title.trim();
@@ -216,6 +215,7 @@ export const useRunStore = create<RunState>()(
       name: 'timeattack-run',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
+        onboarded: state.onboarded,
         tasks: state.tasks,
         currentIndex: state.currentIndex,
         startedAt: state.startedAt,
