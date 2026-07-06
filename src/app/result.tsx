@@ -8,6 +8,7 @@ import { captureRef } from 'react-native-view-shot';
 import { ShareCard } from '@/components/ShareCard';
 import { streakDays } from '@/domain/progress';
 import { levelForXp, runSavedSeconds, runXp } from '@/domain/xp';
+import { useCountUp } from '@/hooks/useCountUp';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useRunStore } from '@/stores/useRunStore';
 import { notify } from '@/utils/dialog';
@@ -44,6 +45,16 @@ export default function ResultScreen() {
   const level = levelForXp(totalXp);
   const day = streakDays(records, new Date());
 
+  // 타임 세이브 히어로: 카운트업 롤링 + 베팅 대비 아낀 비율 게이지
+  const animatedSavedSeconds = useCountUp(savedSeconds);
+  const attemptedBetSeconds = attempted.reduce((sum, t) => sum + t.betSeconds, 0);
+  const savedRatio = attemptedBetSeconds > 0 ? savedSeconds / attemptedBetSeconds : 0;
+  const GAUGE_SEGMENTS = 5;
+  const filledSegments =
+    savedSeconds > 0
+      ? Math.max(1, Math.min(GAUGE_SEGMENTS, Math.round(savedRatio * GAUGE_SEGMENTS)))
+      : 0;
+
   const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 
   const backToPlanning = () => {
@@ -76,15 +87,32 @@ export default function ResultScreen() {
         <CheckerFlag />
       </View>
 
-      <View className="mt-10 items-center">
+      <View className="mt-8 items-center">
         <Text className="font-digitbold text-sm tracking-[3px] text-racing">FINISH</Text>
-        <Text className="mt-1 font-digitbold text-6xl text-ink">
+        <Text className="mt-1 font-digitbold text-5xl text-ink">
           {formatClock(totalFocusSeconds)}
         </Text>
         <Text className="mt-2 text-[13px] text-ink-mute">총 집중 시간</Text>
       </View>
 
-      <View className="mt-8 flex-row border-y-[0.5px] border-hairline py-4">
+      <View className="mt-7 items-center">
+        <Text className="font-digitbold text-sm tracking-[2px] text-racing">TIME SAVE</Text>
+        <Text className="mt-1 font-digitbold text-6xl text-ink">
+          +{formatClock(animatedSavedSeconds)}
+        </Text>
+        <Text className="mt-2 text-[13px] text-ink-mute">아낀 시간</Text>
+        <View className="mt-4 w-48 flex-row gap-1">
+          {Array.from({ length: GAUGE_SEGMENTS }, (_, i) => (
+            <View
+              key={i}
+              className={`h-[6px] flex-1 ${i < filledSegments ? 'bg-racing' : 'bg-track'}`}
+              style={{ transform: [{ skewX: '-20deg' }] }}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View className="mt-7 flex-row border-y-[0.5px] border-hairline py-4">
         <View className="flex-1 items-center border-r-[0.5px] border-hairline">
           <Text className="font-digitbold text-2xl text-ink">
             {cleared.length}/{attempted.length}
@@ -94,10 +122,6 @@ export default function ResultScreen() {
         <View className="flex-1 items-center border-r-[0.5px] border-hairline">
           <Text className="font-digitbold text-2xl text-racing">+{xp}</Text>
           <Text className="mt-1 text-xs text-ink-mute">XP</Text>
-        </View>
-        <View className="flex-1 items-center border-r-[0.5px] border-hairline">
-          <Text className="font-digitbold text-2xl text-ink">{formatClock(savedSeconds)}</Text>
-          <Text className="mt-1 text-xs text-ink-mute">타임 세이브</Text>
         </View>
         <View className="flex-1 items-center">
           <Text className="font-digitbold text-2xl text-ink">×{maxCombo}</Text>
