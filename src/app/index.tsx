@@ -1,11 +1,21 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { AppState, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  AppState,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EditTaskSheet } from '@/components/EditTaskSheet';
 import { streakDays } from '@/domain/progress';
-import { Importance, levelForXp } from '@/domain/xp';
+import { Importance, levelForXp, RunTask } from '@/domain/xp';
 import { ensureNotificationSetup } from '@/services/notifications';
 import { useProgressStore } from '@/stores/useProgressStore';
 import { useRunStore } from '@/stores/useRunStore';
@@ -33,19 +43,25 @@ export default function PlanningScreen() {
   const rolloverIfNeeded = useRunStore((s) => s.rolloverIfNeeded);
   const currentIndex = useRunStore((s) => s.currentIndex);
   const hydrated = useRunStore((s) => s.hydrated);
+  const onboarded = useRunStore((s) => s.onboarded);
   const records = useProgressStore((s) => s.records);
   const totalXp = useProgressStore((s) => s.totalXp);
 
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState<Importance>(2);
   const [betIndex, setBetIndex] = useState(1);
-  const [editMode, setEditMode] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [editingTask, setEditingTask] = useState<RunTask | null>(null);
 
-  // 앱 재시작 시 진행 중이던 런이 있으면 세션으로 복귀 (타이머는 endAt 기준이라 그대로 이어짐)
+  // 첫 실행이면 온보딩으로, 진행 중이던 런이 있으면 세션으로 복귀 (endAt 기준이라 타이머 이어짐)
   useEffect(() => {
-    if (hydrated && currentIndex !== null) router.replace('/session');
-  }, [hydrated, currentIndex]);
+    if (!hydrated) return;
+    if (!onboarded) {
+      router.replace('/onboarding');
+      return;
+    }
+    if (currentIndex !== null) router.replace('/session');
+  }, [hydrated, onboarded, currentIndex]);
 
   // 날짜가 바뀌면 어제의 완료/포기 태스크를 정리하고 새 스테이지로
   useEffect(() => {
@@ -68,27 +84,7 @@ export default function PlanningScreen() {
     weekday: 'long',
   });
 
-  const clearEditing = () => {
-    setEditingId(null);
-    setTitle('');
-  };
-
-  const beginEdit = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-    setEditingId(taskId);
-    setTitle(task.title);
-    setImportance(task.importance);
-    const preset = BET_PRESETS.indexOf(Math.round(task.betSeconds / 60));
-    setBetIndex(preset === -1 ? 1 : preset);
-  };
-
   const submitTask = () => {
-    if (editingId) {
-      updateTask(editingId, { title, importance, betMinutes: BET_PRESETS[betIndex] });
-      clearEditing();
-      return;
-    }
     addTask(title, importance, BET_PRESETS[betIndex]);
     setTitle('');
   };
@@ -105,27 +101,26 @@ export default function PlanningScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper">
-      {/* SafeAreaView는 inset을 인라인 padding으로 덮어쓰므로 레이아웃 패딩은 내부 View에 */}
-      <View className="flex-1 px-6">
+      {/* 하단 입력바가 키보드에 가려지지 않도록 화면 전체를 KeyboardAvoidingView로 감쌈 */}
+      <KeyboardAvoidingView
+        className="flex-1 px-6"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[13px] text-ink-mute">{today}</Text>
           <Text className="mt-1 text-2xl font-medium text-ink">오늘의 스테이지</Text>
         </View>
-        <Text className="font-digitbold text-base text-racing">
-          LV {level} · DAY {day}
-        </Text>
+        <Pressable onPress={() => router.push('/stats')} hitSlop={8}>
+          <Text className="font-digitbold text-base text-racing">
+            LV {level} · DAY {day} ›
+          </Text>
+        </Pressable>
       </View>
 
       <View className="mt-4 flex-row justify-end">
-        <Pressable
-          onPress={() => {
-            setEditMode((prev) => !prev);
-            clearEditing();
-          }}
-          hitSlop={8}>
-          <Text className={`text-[13px] ${editMode ? 'text-racing' : 'text-ink-mute'}`}>
-            {editMode ? '편집 완료' : '편집'}
+        <Pressable onPress={() => setReorderMode((prev) => !prev)} hitSlop={8}>
+          <Text className={`text-[13px] ${reorderMode ? 'text-racing' : 'text-ink-mute'}`}>
+            {reorderMode ? '순서 완료' : '순서 변경'}
           </Text>
         </Pressable>
       </View>
@@ -137,18 +132,15 @@ export default function PlanningScreen() {
         ItemSeparatorComponent={() => <View className="h-[0.5px] bg-hairline" />}
         renderItem={({ item }) => (
           <Pressable
-            className={`flex-row items-center justify-between py-3 ${
-              editingId === item.id ? '-mx-2 rounded-lg bg-track px-2' : ''
-            }`}
-            disabled={!editMode}
-            onPress={() => beginEdit(item.id)}>
+            className="flex-row items-center justify-between py-3"
+            onPress={() => setEditingTask(item)}>
             <View className="flex-1 pr-2">
               <Text className="text-[15px] text-ink">{item.title}</Text>
               <View className="mt-1">
                 <Chevrons level={item.importance} />
               </View>
             </View>
-            {editMode ? (
+            {reorderMode ? (
               <View className="flex-row items-center gap-1">
                 <Pressable
                   className="h-9 w-9 items-center justify-center rounded-lg bg-track"
@@ -161,15 +153,6 @@ export default function PlanningScreen() {
                   hitSlop={4}
                   onPress={() => moveTask(item.id, 1)}>
                   <Text className="text-[13px] text-ink">↓</Text>
-                </Pressable>
-                <Pressable
-                  className="h-9 w-9 items-center justify-center rounded-lg bg-track"
-                  hitSlop={4}
-                  onPress={() => {
-                    removeTask(item.id);
-                    if (editingId === item.id) clearEditing();
-                  }}>
-                  <Text className="text-[13px] text-racing">✕</Text>
                 </Pressable>
               </View>
             ) : (
@@ -191,7 +174,7 @@ export default function PlanningScreen() {
       <View className="flex-row items-center gap-2 border-t-[0.5px] border-hairline py-3">
         <TextInput
           className="h-11 flex-1 rounded-lg bg-track px-3 text-[14px] text-ink"
-          placeholder={editingId ? '태스크 수정' : '할 일 추가'}
+          placeholder="할 일 추가"
           placeholderTextColor="#A6A69E"
           value={title}
           onChangeText={setTitle}
@@ -211,7 +194,7 @@ export default function PlanningScreen() {
         <Pressable
           className="h-11 w-11 items-center justify-center rounded-lg bg-ink"
           onPress={submitTask}>
-          <Text className="text-lg text-paper">{editingId ? '✓' : '＋'}</Text>
+          <Text className="text-lg text-paper">＋</Text>
         </Pressable>
       </View>
 
@@ -225,7 +208,14 @@ export default function PlanningScreen() {
           <Text className="text-[15px] font-medium text-white">타임어택 시작 ›››</Text>
         </Pressable>
       </View>
-      </View>
+      </KeyboardAvoidingView>
+
+      <EditTaskSheet
+        task={editingTask}
+        onSave={(id, result) => updateTask(id, result)}
+        onDelete={(id) => removeTask(id)}
+        onClose={() => setEditingTask(null)}
+      />
     </SafeAreaView>
   );
 }
