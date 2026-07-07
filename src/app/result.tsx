@@ -88,31 +88,31 @@ export default function ResultScreen() {
       <View className="flex-1 px-6">
       <View className="mt-4 flex-row items-end justify-between">
         <View>
-          <Text className="text-[13px] text-ink-mute">{today} 결과</Text>
-          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 레이스</Text>
+          <Text className="text-[15px] text-ink-mute">{today} 결과</Text>
+          <Text className="mt-1 text-3xl font-medium text-ink">오늘의 레이스</Text>
         </View>
         <CheckerFlag />
       </View>
 
       <View className="mt-8 items-center">
-        <Text className="font-digitbold text-sm tracking-[3px] text-racing">FINISH</Text>
-        <Text className="mt-1 font-digitbold text-5xl text-ink">
+        <Text className="font-digitbold text-lg tracking-[3px] text-racing">FINISH</Text>
+        <Text className="mt-1 font-digitbold text-6xl text-ink">
           {formatClock(totalFocusSeconds)}
         </Text>
-        <Text className="mt-2 text-[13px] text-ink-mute">총 집중 시간</Text>
+        <Text className="mt-2 text-[15px] text-ink-mute">총 집중 시간</Text>
       </View>
 
       <View className="mt-7 items-center">
-        <Text className="font-digitbold text-sm tracking-[2px] text-racing">TIME SAVE</Text>
-        <Text className="mt-1 font-digitbold text-6xl text-ink">
+        <Text className="font-digitbold text-lg tracking-[2px] text-racing">TIME SAVE</Text>
+        <Text className="mt-1 font-digitbold text-7xl text-ink">
           +{formatClock(animatedSavedSeconds)}
         </Text>
-        <Text className="mt-2 text-[13px] text-ink-mute">아낀 시간</Text>
-        <View className="mt-4 w-48 flex-row gap-1">
+        <Text className="mt-2 text-[15px] text-ink-mute">아낀 시간</Text>
+        <View className="mt-5 w-56 flex-row gap-1">
           {Array.from({ length: GAUGE_SEGMENTS }, (_, i) => (
             <View
               key={i}
-              className={`h-[6px] flex-1 ${i < filledSegments ? 'bg-racing' : 'bg-track'}`}
+              className={`h-2 flex-1 ${i < filledSegments ? 'bg-racing' : 'bg-track'}`}
               style={{ transform: [{ skewX: '-20deg' }] }}
             />
           ))}
@@ -121,29 +121,29 @@ export default function ResultScreen() {
 
       <View className="mt-7 flex-row border-y-[0.5px] border-hairline py-4">
         <View className="flex-1 items-center border-r-[0.5px] border-hairline">
-          <Text className="font-digitbold text-2xl text-ink">
+          <Text className="font-digitbold text-3xl text-ink">
             {cleared.length}/{attempted.length}
           </Text>
-          <Text className="mt-1 text-xs text-ink-mute">클리어</Text>
+          <Text className="mt-1 text-sm text-ink-mute">클리어</Text>
         </View>
         <View className="flex-1 items-center border-r-[0.5px] border-hairline">
-          <Text className="font-digitbold text-2xl text-racing">+{xp}</Text>
-          <Text className="mt-1 text-xs text-ink-mute">XP</Text>
+          <Text className="font-digitbold text-3xl text-racing">+{xp}</Text>
+          <Text className="mt-1 text-sm text-ink-mute">XP</Text>
         </View>
         <View className="flex-1 items-center">
-          <Text className="font-digitbold text-2xl text-ink">×{maxCombo}</Text>
-          <Text className="mt-1 text-xs text-ink-mute">최대 콤보</Text>
+          <Text className="font-digitbold text-3xl text-ink">×{maxCombo}</Text>
+          <Text className="mt-1 text-sm text-ink-mute">최대 콤보</Text>
         </View>
       </View>
 
       <View className="mt-auto gap-3 pb-4">
         <Pressable
-          className="items-center rounded-2xl border border-ink py-4 active:bg-track"
+          className="items-center rounded-2xl border border-ink py-5 active:bg-track"
           onPress={share}>
-          <Text className="text-[15px] font-medium text-ink">스토리로 공유</Text>
+          <Text className="text-[18px] font-medium text-ink">스토리로 공유</Text>
         </Pressable>
         <Pressable className="items-center py-2" onPress={backToPlanning} hitSlop={8}>
-          <Text className="text-[13px] text-ink-mute">새 플래닝 시작</Text>
+          <Text className="text-[15px] text-ink-mute">새 플래닝 시작</Text>
         </Pressable>
       </View>
       </View>

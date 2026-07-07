@@ -56,14 +56,14 @@ export function EditTaskSheet({
         />
         <View className="rounded-t-3xl bg-paper px-6 pb-8 pt-6">
           <View className="mb-5 flex-row items-center justify-between">
-            <Text className="text-lg font-medium text-ink">태스크 수정</Text>
+            <Text className="text-xl font-medium text-ink">태스크 수정</Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <Text className="text-[13px] text-ink-mute">닫기</Text>
+              <Text className="text-[15px] text-ink-mute">닫기</Text>
             </Pressable>
           </View>
 
           <TextInput
-            className="h-12 rounded-lg bg-track px-3 text-[15px] text-ink"
+            className="h-14 rounded-lg bg-track px-4 text-[17px] text-ink"
             placeholder="할 일 이름"
             placeholderTextColor="#A6A69E"
             value={title}
@@ -71,7 +71,7 @@ export function EditTaskSheet({
             returnKeyType="done"
           />
 
-          <Text className="mb-2 mt-6 text-[13px] text-ink-mute">중요도</Text>
+          <Text className="mb-2 mt-6 text-[15px] text-ink-mute">중요도</Text>
           <View className="flex-row gap-2">
             {IMPORTANCE_LEVELS.map((level) => {
               const active = importance === level;
@@ -79,11 +79,11 @@ export function EditTaskSheet({
                 <Pressable
                   key={level}
                   onPress={() => setImportance(level)}
-                  className={`flex-1 items-center rounded-lg py-3 ${
+                  className={`flex-1 items-center rounded-lg py-4 ${
                     active ? 'bg-racing' : 'bg-track'
                   }`}>
                   <Text
-                    className={`font-digitbold text-base tracking-[2px] ${
+                    className={`font-digitbold text-xl tracking-[2px] ${
                       active ? 'text-white' : 'text-ink-faint'
                     }`}>
                     {'›'.repeat(level)}
@@ -93,7 +93,7 @@ export function EditTaskSheet({
             })}
           </View>
 
-          <Text className="mb-2 mt-6 text-[13px] text-ink-mute">베팅 시간</Text>
+          <Text className="mb-2 mt-6 text-[15px] text-ink-mute">베팅 시간</Text>
           <View className="flex-row gap-2">
             {BET_PRESETS.map((preset) => {
               const active = betMinutes === preset;
@@ -101,11 +101,11 @@ export function EditTaskSheet({
                 <Pressable
                   key={preset}
                   onPress={() => setBetMinutes(preset)}
-                  className={`flex-1 items-center rounded-lg py-3 ${
+                  className={`flex-1 items-center rounded-lg py-4 ${
                     active ? 'bg-racing' : 'bg-track'
                   }`}>
                   <Text
-                    className={`font-digit text-[15px] ${active ? 'text-white' : 'text-ink-mute'}`}>
+                    className={`font-digit text-[18px] ${active ? 'text-white' : 'text-ink-mute'}`}>
                     {preset}′
                   </Text>
                 </Pressable>
@@ -115,8 +115,8 @@ export function EditTaskSheet({
 
           <Pressable
             onPress={save}
-            className="mt-8 items-center rounded-2xl bg-ink py-4 active:opacity-80">
-            <Text className="text-[15px] font-medium text-paper">저장</Text>
+            className="mt-8 items-center rounded-2xl bg-ink py-5 active:opacity-80">
+            <Text className="text-[18px] font-medium text-paper">저장</Text>
           </Pressable>
           <Pressable
             onPress={() => {
@@ -125,7 +125,7 @@ export function EditTaskSheet({
             }}
             className="mt-3 items-center py-2"
             hitSlop={8}>
-            <Text className="text-[13px] text-racing">삭제</Text>
+            <Text className="text-[15px] text-racing">삭제</Text>
           </Pressable>
         </View>
       </View>

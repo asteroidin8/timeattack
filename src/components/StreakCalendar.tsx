@@ -38,7 +38,7 @@ export function StreakCalendar({
       <View className="flex-row" style={{ gap: GAP, marginBottom: 6 }}>
         {DAY_LABELS.map((d) => (
           <View key={d} style={{ width: CELL }} className="items-center">
-            <Text className="text-[10px] text-ink-faint">{d}</Text>
+            <Text className="text-[12px] text-ink-faint">{d}</Text>
           </View>
         ))}
       </View>
@@ -62,7 +62,7 @@ export function StreakCalendar({
               }}
               className="items-center justify-center">
               <Text
-                className={`text-[11px] ${level >= 3 ? 'text-white' : 'text-ink-mute'}`}
+                className={`text-[13px] ${level >= 3 ? 'text-white' : 'text-ink-mute'}`}
                 style={isToday ? { fontWeight: '600' } : undefined}>
                 {dayNum}
               </Text>
@@ -72,14 +72,14 @@ export function StreakCalendar({
       </View>
 
       <View className="mt-4 flex-row items-center gap-1 self-end">
-        <Text className="text-[10px] text-ink-faint">적음</Text>
+        <Text className="text-[12px] text-ink-faint">적음</Text>
         {[0, 1, 2, 3, 4].map((lvl) => (
           <View
             key={lvl}
             style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: LEVEL_FILL[lvl] }}
           />
         ))}
-        <Text className="text-[10px] text-ink-faint">많음</Text>
+        <Text className="text-[12px] text-ink-faint">많음</Text>
       </View>
     </View>
   );

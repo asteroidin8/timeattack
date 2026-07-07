@@ -33,20 +33,20 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper">
       <View className="flex-1 justify-center px-8">
-        <Text className="font-digitbold text-base tracking-[2px] text-racing">TODORUN</Text>
-        <Text className="mt-2 text-3xl font-medium leading-tight text-ink">
+        <Text className="font-digitbold text-xl tracking-[2px] text-racing">TODORUN</Text>
+        <Text className="mt-3 text-4xl font-medium leading-tight text-ink">
           할 일 목록이{'\n'}레이스 트랙이 됩니다
         </Text>
 
-        <View className="mt-12 gap-7">
+        <View className="mt-14 gap-9">
           {STEPS.map((step) => (
-            <View key={step.tag} className="flex-row gap-4">
-              <Text className="mt-[2px] w-14 font-digitbold text-sm text-racing">
+            <View key={step.tag} className="flex-row gap-5">
+              <Text className="mt-[2px] w-16 font-digitbold text-lg text-racing">
                 {step.tag}
               </Text>
               <View className="flex-1">
-                <Text className="text-[16px] font-medium text-ink">{step.title}</Text>
-                <Text className="mt-1 text-[13px] leading-5 text-ink-mute">{step.body}</Text>
+                <Text className="text-[19px] font-medium text-ink">{step.title}</Text>
+                <Text className="mt-1.5 text-[16px] leading-6 text-ink-mute">{step.body}</Text>
               </View>
             </View>
           ))}
@@ -55,9 +55,9 @@ export default function OnboardingScreen() {
 
       <View className="px-8 pb-6">
         <Pressable
-          className="items-center rounded-2xl bg-racing py-4 active:opacity-80"
+          className="items-center rounded-2xl bg-racing py-5 active:opacity-80"
           onPress={start}>
-          <Text className="text-[15px] font-medium text-white">시작하기 ›››</Text>
+          <Text className="text-[18px] font-medium text-white">시작하기 ›››</Text>
         </Pressable>
       </View>
     </SafeAreaView>
