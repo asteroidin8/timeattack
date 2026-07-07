@@ -29,7 +29,7 @@ const BET_PRESETS = [15, 25, 50];
 
 function Chevrons({ level }: { level: Importance }) {
   return (
-    <Text className="font-digitbold text-xs tracking-[2px]">
+    <Text className="font-digitbold text-base tracking-[2px]">
       <Text className="text-racing">{'›'.repeat(level)}</Text>
       <Text className="text-ink-faint">{'›'.repeat(3 - level)}</Text>
     </Text>
@@ -111,13 +111,13 @@ export default function PlanningScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View className="mt-4 flex-row items-end justify-between">
         <View>
-          <Text className="text-[13px] text-ink-mute">{today}</Text>
-          <Text className="mt-1 text-2xl font-medium text-ink">오늘의 스테이지</Text>
+          <Text className="text-[15px] text-ink-mute">{today}</Text>
+          <Text className="mt-1 text-3xl font-medium text-ink">오늘의 스테이지</Text>
         </View>
         <Pressable onPress={() => router.push('/stats')} hitSlop={8}>
           {/* 복원 전 기본값(LV 1·DAY 1) 깜빡임 방지 */}
           {progressHydrated && (
-            <Text className="font-digitbold text-base text-racing">
+            <Text className="font-digitbold text-xl text-racing">
               LV {level} · DAY {day} ›
             </Text>
           )}
@@ -144,19 +144,19 @@ export default function PlanningScreen() {
                 onLongPress={drag}
                 delayLongPress={180}>
                 <View className="flex-1 pr-2">
-                  <Text className="text-[15px] text-ink">{item.title}</Text>
+                  <Text className="text-[17px] text-ink">{item.title}</Text>
                   <View className="mt-1">
                     <Chevrons level={item.importance} />
                   </View>
                 </View>
-                <Text className="font-digit text-xl text-ink">
+                <Text className="font-digit text-2xl text-ink">
                   {formatClock(item.betSeconds)}
                 </Text>
               </Pressable>
             </ScaleDecorator>
           )}
           ListEmptyComponent={
-            <Text className="py-10 text-center text-[13px] text-ink-mute">
+            <Text className="py-10 text-center text-[15px] text-ink-mute">
               아래에서 첫 태스크를 추가해 보세요
             </Text>
           }
@@ -166,7 +166,7 @@ export default function PlanningScreen() {
 
       <View className="flex-row items-center gap-2 border-t-[0.5px] border-hairline py-3">
         <TextInput
-          className="h-11 flex-1 rounded-lg bg-track px-3 text-[14px] text-ink"
+          className="h-14 flex-1 rounded-lg bg-track px-4 text-[17px] text-ink"
           placeholder="할 일 추가"
           placeholderTextColor="#A6A69E"
           value={title}
@@ -175,30 +175,30 @@ export default function PlanningScreen() {
           returnKeyType="done"
         />
         <Pressable
-          className="h-11 items-center justify-center rounded-lg bg-track px-3"
+          className="h-14 items-center justify-center rounded-lg bg-track px-4"
           onPress={() => setImportance((prev) => ((prev % 3) + 1) as Importance)}>
           <Chevrons level={importance} />
         </Pressable>
         <Pressable
-          className="h-11 items-center justify-center rounded-lg bg-track px-3"
+          className="h-14 items-center justify-center rounded-lg bg-track px-4"
           onPress={() => setBetIndex((prev) => (prev + 1) % BET_PRESETS.length)}>
-          <Text className="font-digit text-base text-ink">{BET_PRESETS[betIndex]}′</Text>
+          <Text className="font-digit text-xl text-ink">{BET_PRESETS[betIndex]}′</Text>
         </Pressable>
         <Pressable
-          className="h-11 w-11 items-center justify-center rounded-lg bg-ink"
+          className="h-14 w-14 items-center justify-center rounded-lg bg-ink"
           onPress={submitTask}>
-          <Text className="text-lg text-paper">＋</Text>
+          <Text className="text-2xl text-paper">＋</Text>
         </Pressable>
       </View>
 
       <View className="pb-4">
-        <Text className="mb-3 text-center font-digit text-sm text-ink-mute">
+        <Text className="mb-3 text-center font-digit text-base text-ink-mute">
           {pending.length} TASKS · {formatClock(totalBetSeconds)}
         </Text>
         <Pressable
-          className="items-center rounded-2xl bg-racing py-4 active:opacity-80"
+          className="items-center rounded-2xl bg-racing py-5 active:opacity-80"
           onPress={start}>
-          <Text className="text-[15px] font-medium text-white">타임어택 시작 ›››</Text>
+          <Text className="text-[18px] font-medium text-white">타임어택 시작 ›››</Text>
         </Pressable>
       </View>
       </KeyboardAvoidingView>

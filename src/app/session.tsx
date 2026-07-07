@@ -113,50 +113,50 @@ export default function SessionScreen() {
     <SafeAreaView className="flex-1 bg-paper">
       {/* SafeAreaView는 inset을 인라인 padding으로 덮어쓰므로 레이아웃 패딩은 내부 View에 */}
       <View className="flex-1 items-center px-6">
-      <View className="mt-6 border border-racing px-3 py-1" style={{ transform: [{ skewX: '-10deg' }] }}>
+      <View className="mt-6 border border-racing px-4 py-1.5" style={{ transform: [{ skewX: '-10deg' }] }}>
         <Text
-          className="font-digitbold text-sm text-racing"
+          className="font-digitbold text-lg text-racing"
           style={{ transform: [{ skewX: '10deg' }] }}>
           STAGE {doneCount + 1}/{tasks.length}
         </Text>
       </View>
 
-      <Text className="mt-3 text-[15px] text-ink">{task.title}</Text>
+      <Text className="mt-4 text-[18px] text-ink">{task.title}</Text>
 
       <View className="flex-1 items-center justify-center">
         <Text
-          className={`font-digitbold text-[88px] leading-none ${
+          className={`font-digitbold text-[100px] leading-none ${
             inDanger ? 'text-racing' : 'text-ink'
           }`}>
           {formatSigned(remainingSeconds)}
         </Text>
-        <Text className="mt-2 font-digit text-sm text-ink-mute">
+        <Text className="mt-3 font-digit text-lg text-ink-mute">
           BET {formatClock(task.betSeconds)}
         </Text>
 
-        <View className="mt-8 w-64 flex-row gap-1">
+        <View className="mt-9 w-72 flex-row gap-1">
           {Array.from({ length: SEGMENTS }, (_, i) => (
             <View
               key={i}
-              className={`h-2 flex-1 ${i < filledSegments ? 'bg-racing' : 'bg-track'}`}
+              className={`h-2.5 flex-1 ${i < filledSegments ? 'bg-racing' : 'bg-track'}`}
               style={{ transform: [{ skewX: '-20deg' }] }}
             />
           ))}
         </View>
 
         {combo > 0 && (
-          <Text className="mt-5 font-digitbold text-lg text-racing">COMBO ×{combo}</Text>
+          <Text className="mt-6 font-digitbold text-2xl text-racing">COMBO ×{combo}</Text>
         )}
       </View>
 
       <View className="w-full items-center gap-3 pb-6">
         <Pressable
-          className="w-full items-center rounded-2xl border border-ink py-4 active:bg-track"
+          className="w-full items-center rounded-2xl border border-ink py-5 active:bg-track"
           onPress={complete}>
-          <Text className="text-[15px] font-medium text-ink">완료</Text>
+          <Text className="text-[18px] font-medium text-ink">완료</Text>
         </Pressable>
         <Pressable onPress={giveUp} hitSlop={8}>
-          <Text className="text-[13px] text-ink-mute">포기하기</Text>
+          <Text className="text-[15px] text-ink-mute">포기하기</Text>
         </Pressable>
       </View>
       </View>
