@@ -35,6 +35,10 @@ export function EditTaskSheet({
     setImportance(task.importance);
     setBetMinutes(Math.round(task.betSeconds / 60));
   }
+  // 닫히면 시딩을 리셋 — 같은 태스크를 다시 열 때 저장 안 한 편집값이 남지 않도록
+  if (!task && seededId !== null) {
+    setSeededId(null);
+  }
 
   const save = () => {
     if (!task) return;

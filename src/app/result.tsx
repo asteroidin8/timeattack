@@ -1,6 +1,6 @@
 import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
@@ -32,10 +32,17 @@ export default function ResultScreen() {
   const tasks = useRunStore((s) => s.tasks);
   const maxCombo = useRunStore((s) => s.maxCombo);
   const resetRun = useRunStore((s) => s.resetRun);
+  const hydrated = useRunStore((s) => s.hydrated);
+  const currentIndex = useRunStore((s) => s.currentIndex);
   const records = useProgressStore((s) => s.records);
   const totalXp = useProgressStore((s) => s.totalXp);
 
   const cardRef = useRef<View>(null);
+
+  // 진행 중인 런이 있는데 결과로 직접 진입하면 세션으로 복귀
+  useEffect(() => {
+    if (hydrated && currentIndex !== null) router.replace('/session');
+  }, [hydrated, currentIndex]);
 
   const cleared = tasks.filter((t) => t.status === 'clear');
   const attempted = tasks.filter((t) => t.status !== 'pending');
