@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import {
   AppState,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   Text,
   TextInput,
@@ -105,10 +104,8 @@ export default function PlanningScreen() {
   return (
     <SafeAreaView className="flex-1 bg-paper">
       {/* 하단 입력바가 키보드에 가려지지 않도록 화면 전체를 KeyboardAvoidingView로 감쌈
-          Android는 undefined면 창이 안 줄어드는 기기에서 입력바가 가려져 'height'로 명시 */}
-      <KeyboardAvoidingView
-        className="flex-1 px-6"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          SDK 53+ Android는 edge-to-edge 강제라 adjustResize/'height'가 무효 — 양쪽 다 'padding' */}
+      <KeyboardAvoidingView className="flex-1 px-6" behavior="padding">
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[15px] text-ink-mute">{today}</Text>
@@ -164,7 +161,7 @@ export default function PlanningScreen() {
         />
       </View>
 
-      <View className="flex-row items-center gap-2 border-t-[0.5px] border-hairline py-3">
+      <View className="flex-row items-center gap-2 py-3">
         <TextInput
           className="h-14 flex-1 rounded-lg bg-track px-4 text-[17px] text-ink"
           placeholder="할 일 추가"
