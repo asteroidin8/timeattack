@@ -49,6 +49,7 @@ export default function PlanningScreen() {
   const onboarded = useRunStore((s) => s.onboarded);
   const records = useProgressStore((s) => s.records);
   const totalXp = useProgressStore((s) => s.totalXp);
+  const progressHydrated = useProgressStore((s) => s.hydrated);
 
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState<Importance>(2);
@@ -114,9 +115,12 @@ export default function PlanningScreen() {
           <Text className="mt-1 text-2xl font-medium text-ink">오늘의 스테이지</Text>
         </View>
         <Pressable onPress={() => router.push('/stats')} hitSlop={8}>
-          <Text className="font-digitbold text-base text-racing">
-            LV {level} · DAY {day} ›
-          </Text>
+          {/* 복원 전 기본값(LV 1·DAY 1) 깜빡임 방지 */}
+          {progressHydrated && (
+            <Text className="font-digitbold text-base text-racing">
+              LV {level} · DAY {day} ›
+            </Text>
+          )}
         </Pressable>
       </View>
 

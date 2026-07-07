@@ -22,6 +22,7 @@ function Metric({ label, value, accent }: { label: string; value: string; accent
 export default function StatsScreen() {
   const records = useProgressStore((s) => s.records);
   const totalXp = useProgressStore((s) => s.totalXp);
+  const hydrated = useProgressStore((s) => s.hydrated);
 
   const now = new Date();
   const weekly = weeklyFocusSeconds(records, now);
@@ -29,6 +30,9 @@ export default function StatsScreen() {
   const day = streakDays(records, now);
   const level = levelForXp(totalXp);
   const hasRecords = Object.keys(records).length > 0;
+
+  // 복원 전 0 값 깜빡임 방지 — 배경만 유지
+  if (!hydrated) return <SafeAreaView className="flex-1 bg-paper" />;
 
   return (
     <SafeAreaView className="flex-1 bg-paper">
