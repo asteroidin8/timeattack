@@ -103,10 +103,11 @@ export default function PlanningScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper">
-      {/* 하단 입력바가 키보드에 가려지지 않도록 화면 전체를 KeyboardAvoidingView로 감쌈 */}
+      {/* 하단 입력바가 키보드에 가려지지 않도록 화면 전체를 KeyboardAvoidingView로 감쌈
+          Android는 undefined면 창이 안 줄어드는 기기에서 입력바가 가려져 'height'로 명시 */}
       <KeyboardAvoidingView
         className="flex-1 px-6"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View className="mt-4 flex-row items-end justify-between">
         <View>
           <Text className="text-[13px] text-ink-mute">{today}</Text>
