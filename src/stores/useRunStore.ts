@@ -165,11 +165,8 @@ export const useRunStore = create<RunState>()(
 
       resetRun: () => {
         set((state) => ({
-          tasks: state.tasks.map((task) => ({
-            ...task,
-            status: 'pending' as const,
-            actualSeconds: undefined,
-          })),
+          // 완료/포기한 태스크는 정리하고 남은 할 일만 새 플래닝으로 (롤오버와 동일 규칙)
+          tasks: state.tasks.filter((task) => task.status === 'pending'),
           currentIndex: null,
           startedAt: null,
           endAt: null,

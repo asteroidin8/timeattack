@@ -29,6 +29,7 @@ export default function SessionScreen() {
 
   const [now, setNow] = useState(() => Date.now());
   const notificationId = useRef<string | null>(null);
+  const lastCompleteAt = useRef(0);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 250);
@@ -88,6 +89,10 @@ export default function SessionScreen() {
   const inDanger = remainingSeconds <= task.betSeconds * DANGER_RATIO;
 
   const complete = () => {
+    // 연타 가드 — 전환 직후 다음 태스크까지 완료되는 것 방지
+    const nowMs = Date.now();
+    if (nowMs - lastCompleteAt.current < 400) return;
+    lastCompleteAt.current = nowMs;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     completeCurrent();
   };

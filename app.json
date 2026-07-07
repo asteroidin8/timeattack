@@ -8,9 +8,11 @@
     "scheme": "todorun",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.asteroidin8.todorun"
     },
     "android": {
+      "package": "com.asteroidin8.todorun",
       "adaptiveIcon": {
         "backgroundColor": "#FEFDFB",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -38,6 +40,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ac723b2c-0e5b-4add-8d27-42f964a37b21"
+      }
+    },
+    "owner": "asteroidin8"
   }
 }
