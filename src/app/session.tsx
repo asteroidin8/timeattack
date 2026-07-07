@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { useKeepAwake } from 'expo-keep-awake';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
@@ -19,6 +20,9 @@ const DANGER_RATIO = 0.2;
 const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 이 태스크는 미완주로 남았어요.';
 
 export default function SessionScreen() {
+  // 세션 중 화면 자동 꺼짐 방지 — 꺼짐이 background로 잡혀 이탈 미완주 처리되는 것 차단
+  useKeepAwake();
+
   const hydrated = useRunStore((s) => s.hydrated);
   const tasks = useRunStore((s) => s.tasks);
   const currentIndex = useRunStore((s) => s.currentIndex);
