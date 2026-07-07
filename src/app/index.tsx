@@ -126,6 +126,8 @@ export default function PlanningScreen() {
           keyExtractor={(item) => item.id}
           onDragEnd={({ data }) => reorderTasks(data.map((t) => t.id))}
           containerStyle={{ flex: 1 }}
+          // 드롭 시 제자리로 정착하는 스프링 — 높은 damping·낮은 stiffness로 튕김 없이 부드럽게
+          animationConfig={{ damping: 30, stiffness: 140, mass: 0.7, overshootClamping: true }}
           ItemSeparatorComponent={() => <View className="h-[0.5px] bg-hairline" />}
           renderItem={({ item, drag, isActive }: RenderItemParams<RunTask>) => (
             <ScaleDecorator>
