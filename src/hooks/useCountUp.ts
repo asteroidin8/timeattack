@@ -18,7 +18,12 @@ export function useCountUp(target: number, durationMs = 1200): number {
       if (progress < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // rAF가 스로틀되는 환경(백그라운드 마운트 등)에서도 최종값은 반드시 도달
+    const finisher = setTimeout(() => setValue(target), durationMs + 100);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(finisher);
+    };
   }, [target, durationMs]);
 
   return value;
