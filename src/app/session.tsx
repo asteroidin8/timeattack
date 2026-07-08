@@ -10,6 +10,7 @@ import {
   ensureNotificationSetup,
   scheduleSessionEndNotification,
 } from '@/services/notifications';
+import { subscribeScreenState } from '@/services/screenState';
 import { useRunStore } from '@/stores/useRunStore';
 import { confirmDestructive, notify } from '@/utils/dialog';
 import { formatClock, formatSigned } from '@/utils/time';
@@ -17,7 +18,8 @@ import { formatClock, formatSigned } from '@/utils/time';
 const SEGMENTS = 10;
 const DANGER_RATIO = 0.2;
 
-const AWAY_FAIL_MESSAGE = '자리를 30초 이상 비워서 이 태스크는 미완주로 남았어요.';
+// 이 시간 이상 차감되면 복귀 시 안내 (짧은 이탈은 조용히 차감만)
+const DEDUCT_NOTIFY_THRESHOLD_SECONDS = 60;
 
 export default function SessionScreen() {
   // 세션 중 화면 자동 꺼짐 방지 — 꺼짐이 background로 잡혀 이탈 미완주 처리되는 것 차단
@@ -44,20 +46,33 @@ export default function SessionScreen() {
     if (hydrated && currentIndex === null) router.replace('/result');
   }, [hydrated, currentIndex]);
 
-  // 이탈 감지: 백그라운드 전환 시각을 기록하고, 복귀(또는 재실행) 시 유예 초과면 미완주 처리
+  // 이탈 회계: 잠금은 집중 인정, 다른 앱에 간 시간만 차감 (실패 없음 — domain/away.ts)
   useEffect(() => {
     if (!hydrated) return;
-    const store = useRunStore.getState();
-    if (store.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
-    const sub = AppState.addEventListener('change', (next) => {
-      const current = useRunStore.getState();
+    const notifyDeduction = (seconds: number) => {
+      if (seconds >= DEDUCT_NOTIFY_THRESHOLD_SECONDS) {
+        notify('자리 비움', `${formatClock(seconds)} 동안 자리를 비워 집중 시간에서 제외했어요.`);
+      }
+    };
+    // 앱 재실행 복귀(킬 폴백 포함) 정산
+    notifyDeduction(useRunStore.getState().settleAway());
+
+    const appStateSub = AppState.addEventListener('change', (next) => {
+      const store = useRunStore.getState();
       if (next === 'active') {
-        if (current.resolveAway() === 'failed') notify('이탈 감지', AWAY_FAIL_MESSAGE);
+        notifyDeduction(store.settleAway());
       } else if (next === 'background' || next === 'inactive') {
-        current.markAway();
+        store.markAway();
       }
     });
-    return () => sub.remove();
+    // 네이티브 잠금 이벤트 (웹/Expo Go는 no-op → 전부 차감 폴백)
+    const unsubscribeScreen = subscribeScreenState((state) => {
+      useRunStore.getState().handleScreenEvent(state);
+    });
+    return () => {
+      appStateSub.remove();
+      unsubscribeScreen();
+    };
   }, [hydrated]);
 
   // 태스크가 바뀔 때마다 종료 알림을 다시 예약 (네이티브 전용, 웹은 no-op)

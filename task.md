@@ -17,7 +17,8 @@
 - [x] **스토어 에셋 제작** — 2026-07-07: store-assets/ 폴더 — 스크린샷 5장(1080×1920, 긍정 프레이밍 헤드라인), Play 스토어 아이콘(512), 피처 그래픽(1024×500). Barlow Condensed Italic 실폰트로 벡터 렌더(sharp)
 - [x] **개인정보처리방침** — 2026-07-07: docs/privacy.html 작성(수집 제로·로컬 온리), GitHub Pages 활성화 — 머지 후 https://asteroidin8.github.io/timeattack/privacy.html
 - [ ] 기기 실검증 2차 (다음 빌드로): 키보드 padding 동작, 사이징 체감, keep-awake, 알림, 공유 카드, DnD 드롭
-- [ ] (제안·미결) AOD풍 세션 절전 모드: 세션 중 무터치 N초 후 어두운 미니멀 타이머(가로 모드 옵션)로 전환, 탭하면 복귀 — 시스템 AOD 통합은 불가라 인앱 구현. keep-awake로 화면이 항상 켜지므로 OLED 배려 겸 연출. v1.1 후보
+- [x] **이탈 처리 완성형 (B+C)** — 2026-07-08 유저 확정·구현: 미완주 강제 폐지 → 차감식(domain/away.ts 순수 상태기계 + 테스트 8개). 잠금(화면 꺼짐)은 집중 인정 — 네이티브 modules/screen-state(Kotlin BroadcastReceiver SCREEN_OFF/ON/USER_PRESENT, Swift protectedData 알림)로 잠금·앱전환 구분. 잠금 해제 후 배회는 차감, 앱 킬 폴백은 보수적 차감. 복귀 시 60초 이상 차감이면 안내. useCountUp rAF 스로틀 시 최종값 보장 finisher 추가(검증 중 발견). 온보딩 FOCUS·스토어 문구 동기화. 기기 검증 필요: 실제 잠금 시나리오(암호 설정 iOS/안드로이드), 이벤트 순서
+- [ ] (제안·미결) AOD풍 세션 절전 모드: 세션 중 무터치 N초 후 어두운 미니멀 타이머(가로 모드 옵션)로 전환, 탭하면 복귀 — 잠금이 무해해져 우선순위 하락, v1.1 후보
 - [x] (유저) KIPRIS 상표 검색 — 2026-07-06 확인 완료: "투두런"·"todorun" 모두 검색 결과 없음, 9류 충돌 없음
 - [ ] (유저·보류) @todorun 인스타 핸들 선점 — 유저 결정으로 보류, 공유 카드 마케팅 시작 전까지만 하면 됨
 - [ ] 개인정보처리방침 작성 + GitHub Pages 무료 호스팅 (로컬 온리·수집 없음이라 짧음) — 스토어 요구사항은 이 URL 하나로 충족, 자체 도메인 불필요
