@@ -163,7 +163,8 @@ export default function PlanningScreen() {
 
       <View className="flex-row items-center gap-2 py-3">
         <TextInput
-          className="h-14 flex-1 rounded-lg bg-track px-4 text-[17px] text-ink"
+          // min-w-0: 웹 input의 intrinsic min-width(auto)가 flex 축소를 막아 행이 우측 패딩을 뚫는 것 방지
+          className="h-14 min-w-0 flex-1 rounded-lg bg-track px-4 text-[17px] text-ink"
           placeholder="할 일 추가"
           placeholderTextColor="#A6A69E"
           value={title}
