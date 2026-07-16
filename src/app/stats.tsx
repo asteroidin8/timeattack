@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DayDetailSheet } from '@/components/DayDetailSheet';
 import { StreakCalendar } from '@/components/StreakCalendar';
 import { streakDays, totalSavedSeconds, weeklyFocusSeconds } from '@/domain/progress';
 import { levelForXp } from '@/domain/xp';
@@ -23,6 +25,8 @@ export default function StatsScreen() {
   const records = useProgressStore((s) => s.records);
   const totalXp = useProgressStore((s) => s.totalXp);
   const hydrated = useProgressStore((s) => s.hydrated);
+  const deleteRecord = useProgressStore((s) => s.deleteRecord);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const now = new Date();
   const weekly = weeklyFocusSeconds(records, now);
@@ -39,9 +43,14 @@ export default function StatsScreen() {
       <View className="flex-1 px-6">
         <View className="mt-4 flex-row items-center justify-between">
           <Text className="text-3xl font-medium text-ink">기록</Text>
-          <Pressable onPress={() => router.back()} hitSlop={8}>
-            <Text className="text-[15px] text-ink-mute">닫기</Text>
-          </Pressable>
+          <View className="flex-row items-center gap-5">
+            <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+              <Text className="text-[15px] text-ink-mute">설정</Text>
+            </Pressable>
+            <Pressable onPress={() => router.back()} hitSlop={8}>
+              <Text className="text-[15px] text-ink-mute">닫기</Text>
+            </Pressable>
+          </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} className="mt-6">
@@ -58,7 +67,12 @@ export default function StatsScreen() {
             {now.getMonth() + 1}월 집중 캘린더
           </Text>
           {hasRecords ? (
-            <StreakCalendar year={now.getFullYear()} month={now.getMonth()} records={records} />
+            <StreakCalendar
+              year={now.getFullYear()}
+              month={now.getMonth()}
+              records={records}
+              onSelectDate={setSelectedDate}
+            />
           ) : (
             <Text className="py-10 text-center text-[15px] text-ink-mute">
               첫 레이스를 완주하면 기록이 채워져요
@@ -68,6 +82,12 @@ export default function StatsScreen() {
           <View className="h-10" />
         </ScrollView>
       </View>
+
+      <DayDetailSheet
+        record={selectedDate ? (records[selectedDate] ?? null) : null}
+        onClose={() => setSelectedDate(null)}
+        onDelete={deleteRecord}
+      />
     </SafeAreaView>
   );
 }

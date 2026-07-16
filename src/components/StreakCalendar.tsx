@@ -1,4 +1,4 @@
-import { Dimensions, Text, View } from 'react-native';
+import { Dimensions, Pressable, Text, View } from 'react-native';
 
 import { DailyRecord, dateKey, focusLevel } from '@/domain/progress';
 
@@ -20,10 +20,12 @@ export function StreakCalendar({
   year,
   month,
   records,
+  onSelectDate,
 }: {
   year: number;
   month: number;
   records: Record<string, DailyRecord>;
+  onSelectDate?: (date: string) => void;
 }) {
   const today = dateKey(new Date());
   const firstDay = new Date(year, month, 1).getDay();
@@ -49,9 +51,12 @@ export function StreakCalendar({
           const level = focusLevel(records[date]?.focusSeconds ?? 0);
           const isToday = date === today;
           const dayNum = parseInt(date.slice(8), 10);
+          const hasRecord = !!records[date];
           return (
-            <View
+            <Pressable
               key={date}
+              disabled={!hasRecord}
+              onPress={() => onSelectDate?.(date)}
               style={{
                 width: CELL,
                 height: CELL,
@@ -66,7 +71,7 @@ export function StreakCalendar({
                 style={isToday ? { fontWeight: '600' } : undefined}>
                 {dayNum}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
