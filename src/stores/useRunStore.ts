@@ -12,7 +12,7 @@ import {
   ScreenEvent,
 } from '@/domain/away';
 import { dateKey } from '@/domain/progress';
-import { Importance, RunTask } from '@/domain/xp';
+import { capOvertimeWallSeconds, Importance, OVERTIME_CAP_MULTIPLIER, RunTask } from '@/domain/xp';
 import { useProgressStore } from '@/stores/useProgressStore';
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -21,6 +21,7 @@ interface TaskFields {
   title?: string;
   importance?: Importance;
   betMinutes?: number;
+  parallel?: boolean;
 }
 
 interface RunState {
@@ -44,6 +45,9 @@ interface RunState {
   reorderTasks: (orderedPendingIds: string[]) => void;
   startRun: () => boolean;
   completeCurrent: () => void;
+  // 방치 방어: now가 startedAt + 2×betSeconds를 넘었으면 그 시점까지만 캡해 클리어 처리.
+  // 넘지 않았으면 아무것도 하지 않고 null 반환. 정산했으면 안내용 태스크 제목을 반환.
+  autoSettleOverdue: () => string | null;
   giveUpCurrent: () => void;
   resetRun: () => void;
   markAway: () => void;
@@ -113,6 +117,7 @@ export const useRunStore = create<RunState>()(
               betSeconds: fields.betMinutes
                 ? Math.max(10, fields.betMinutes) * 60
                 : task.betSeconds,
+              parallel: fields.parallel ?? task.parallel,
             };
           }),
         }));
@@ -167,6 +172,35 @@ export const useRunStore = create<RunState>()(
         }
       },
 
+      autoSettleOverdue: () => {
+        const { tasks, currentIndex, startedAt, combo, maxCombo, away } = get();
+        if (currentIndex === null || startedAt === null) return null;
+        const task = tasks[currentIndex];
+        const capSeconds = task.betSeconds * OVERTIME_CAP_MULTIPLIER;
+        const wallSeconds = Math.round((Date.now() - startedAt) / 1000);
+        if (wallSeconds < capSeconds) return null;
+        // 캡 적용 후에 away를 뺀다 (함정 주의 — 순서를 바꾸면 안 됨)
+        const cappedWallSeconds = capOvertimeWallSeconds(task.betSeconds, wallSeconds);
+        const actualSeconds = Math.max(1, cappedWallSeconds - Math.round(away.awaySeconds));
+        const nextTasks = tasks.map((t, index) =>
+          index === currentIndex ? { ...t, status: 'clear' as const, actualSeconds } : t,
+        );
+        const nextCombo = combo + 1;
+        const nextMaxCombo = Math.max(nextCombo, maxCombo);
+        const placement = advance(nextTasks);
+        set((state) => ({
+          tasks: nextTasks,
+          combo: nextCombo,
+          maxCombo: nextMaxCombo,
+          away: resetAwayForNextTask(state.away),
+          ...placement,
+        }));
+        if (placement.currentIndex === null) {
+          useProgressStore.getState().addRunResult(nextTasks, nextMaxCombo);
+        }
+        return task.title;
+      },
+
       giveUpCurrent: () => {
         const { tasks, currentIndex, maxCombo } = get();
         if (currentIndex === null) return;
@@ -199,8 +233,10 @@ export const useRunStore = create<RunState>()(
       },
 
       markAway: () => {
-        const { currentIndex } = get();
+        const { currentIndex, tasks } = get();
         if (currentIndex === null) return;
+        // 병행 태스크(V1-10): 다른 앱 사용도 집중으로 인정 — 이탈 구간을 아예 시작하지 않음
+        if (tasks[currentIndex]?.parallel) return;
         set((state) => ({ away: onBackground(state.away, Date.now()) }));
       },
 

@@ -8,6 +8,8 @@ export interface RunTask {
   betSeconds: number;
   status: TaskStatus;
   actualSeconds?: number;
+  // 병행 태스크: 다른 앱을 써도 집중으로 인정(이탈 차감 면제). 3단계 랭킹 집계에서는 제외 예정
+  parallel?: boolean;
 }
 
 export type ClearGrade = 'early' | 'accurate' | 'overtime';
@@ -64,4 +66,12 @@ export function runXp(tasks: RunTask[]): number {
 export function levelForXp(totalXp: number): number {
   if (totalXp < 0) return 1;
   return Math.floor(Math.sqrt(totalXp / 100)) + 1;
+}
+
+// 초과 방치 방어: 세션을 방치해도 기록은 베팅의 2배 시점까지만 인정한다 (V1-8).
+export const OVERTIME_CAP_MULTIPLIER = 2;
+
+export function capOvertimeWallSeconds(betSeconds: number, wallSeconds: number): number {
+  const cap = betSeconds * OVERTIME_CAP_MULTIPLIER;
+  return Math.min(wallSeconds, cap);
 }
