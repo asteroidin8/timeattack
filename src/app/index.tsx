@@ -142,8 +142,11 @@ export default function PlanningScreen() {
                 delayLongPress={180}>
                 <View className="flex-1 pr-2">
                   <Text className="text-[17px] text-ink">{item.title}</Text>
-                  <View className="mt-1">
+                  <View className="mt-1 flex-row items-center gap-2">
                     <Chevrons level={item.importance} />
+                    {item.parallel && (
+                      <Text className="text-[13px] text-ink-faint">병행</Text>
+                    )}
                   </View>
                 </View>
                 <Text className="font-digit text-2xl text-ink">
