@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, Switch, Text, TextInput, View } from 'react-native';
 
 import { Importance, RunTask } from '@/domain/xp';
 
@@ -10,6 +10,7 @@ export interface EditResult {
   title: string;
   importance: Importance;
   betMinutes: number;
+  parallel: boolean;
 }
 
 export function EditTaskSheet({
@@ -26,6 +27,7 @@ export function EditTaskSheet({
   const [title, setTitle] = useState('');
   const [importance, setImportance] = useState<Importance>(2);
   const [betMinutes, setBetMinutes] = useState(25);
+  const [parallel, setParallel] = useState(false);
 
   // task가 바뀔 때 필드 초기화 (모달이 열리는 시점)
   const [seededId, setSeededId] = useState<string | null>(null);
@@ -34,6 +36,7 @@ export function EditTaskSheet({
     setTitle(task.title);
     setImportance(task.importance);
     setBetMinutes(Math.round(task.betSeconds / 60));
+    setParallel(task.parallel ?? false);
   }
   // 닫히면 시딩을 리셋 — 같은 태스크를 다시 열 때 저장 안 한 편집값이 남지 않도록
   if (!task && seededId !== null) {
@@ -42,7 +45,7 @@ export function EditTaskSheet({
 
   const save = () => {
     if (!task) return;
-    onSave(task.id, { title, importance, betMinutes });
+    onSave(task.id, { title, importance, betMinutes, parallel });
     onClose();
   };
 
@@ -111,6 +114,21 @@ export function EditTaskSheet({
                 </Pressable>
               );
             })}
+          </View>
+
+          <View className="mt-6 flex-row items-center justify-between border-t-[0.5px] border-hairline pt-5">
+            <View className="flex-1 pr-3">
+              <Text className="text-[17px] text-ink">다른 앱과 함께</Text>
+              <Text className="mt-1 text-[15px] text-ink-mute">
+                이 태스크는 다른 앱을 써도 집중으로 인정돼요
+              </Text>
+            </View>
+            <Switch
+              value={parallel}
+              onValueChange={setParallel}
+              trackColor={{ true: '#E5202E', false: '#EEEDE8' }}
+              thumbColor="#FFFFFF"
+            />
           </View>
 
           <Pressable

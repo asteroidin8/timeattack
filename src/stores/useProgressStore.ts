@@ -12,6 +12,7 @@ interface ProgressState {
   totalXp: number;
   setHydrated: () => void;
   addRunResult: (tasks: RunTask[], maxCombo: number) => void;
+  deleteRecord: (date: string) => void;
 }
 
 export const useProgressStore = create<ProgressState>()(
@@ -34,6 +35,18 @@ export const useProgressStore = create<ProgressState>()(
           return {
             records: { ...state.records, [incoming.date]: merged },
             totalXp: state.totalXp + xpDelta,
+          };
+        });
+      },
+
+      deleteRecord: (date) => {
+        set((state) => {
+          const target = state.records[date];
+          if (!target) return state;
+          const { [date]: _removed, ...rest } = state.records;
+          return {
+            records: rest,
+            totalXp: Math.max(0, state.totalXp - target.xp),
           };
         });
       },

@@ -1,9 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  capOvertimeWallSeconds,
   DAILY_XP_CAP,
   gradeClear,
   levelForXp,
+  OVERTIME_CAP_MULTIPLIER,
   runSavedSeconds,
   runXp,
   RunTask,
@@ -103,6 +105,18 @@ describe('타임 세이브', () => {
       clearedTask({ betSeconds: 600, actualSeconds: 900 }),
     ];
     expect(runSavedSeconds(tasks)).toBe(400);
+  });
+});
+
+describe('capOvertimeWallSeconds — 초과 방치 방어 상한', () => {
+  it('상한(2×bet) 미만이면 그대로 반환', () => {
+    expect(capOvertimeWallSeconds(1000, 999)).toBe(999);
+    expect(capOvertimeWallSeconds(1000, 2000)).toBe(2000);
+  });
+
+  it('상한을 넘으면 2×betSeconds로 캡', () => {
+    expect(capOvertimeWallSeconds(1000, 2001)).toBe(2000);
+    expect(capOvertimeWallSeconds(1000, 999999)).toBe(1000 * OVERTIME_CAP_MULTIPLIER);
   });
 });
 
